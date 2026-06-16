@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Exam {
+  id              String       @id @default(cuid())
+  slug            String       @unique
+  title           String
+  description     String?
+  durationMinutes Int          @default(90)
+  isPublished     Boolean      @default(false)
+  questions       Question[]
+  submissions     Submission[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+model Question {
+  id            String @id @default(cuid())
+  examId        String
+  exam          Exam   @relation(fields: [examId], references: [id], onDelete: Cascade)
+  orderIndex    Int
+  type          String // single | multiple | text
+  stem          String
+  options       Json?
+  correctAnswer Json?
+  maxScore      Int    @default(10)
+  rubric        String?
+
+  @@index([examId])
+}
+
+model Submission {
+  id          String   @id @default(cuid())
+  examId      String
+  exam        Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  studentName String
+  studentId   String
+  answers     Json
+  score       Float?
+  maxScore    Float?
+  status      String   @default("submitted") // submitted | grading | graded | failed
+  feedback    Json?
+  submittedAt DateTime @default(now())
+
+  @@unique([examId, studentId])
+  @@index([examId])
+  @@index([studentId])
+}

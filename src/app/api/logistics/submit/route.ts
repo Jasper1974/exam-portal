@@ -30,7 +30,7 @@ export async function POST(request: Request) {
   if (!isLogisticsStoreConfigured()) {
     return jsonWithCors(
       request,
-      { error: "服务器存储未配置，请联系老师设置 GITHUB_SUBMISSIONS_TOKEN 或 Upstash。" },
+      { error: "服务器存储未配置，请在 Vercel 连接 Blob/Upstash 或设置 GITHUB_SUBMISSIONS_TOKEN。" },
       503,
     );
   }

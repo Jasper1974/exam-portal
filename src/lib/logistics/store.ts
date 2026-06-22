@@ -1,8 +1,10 @@
+import { head, put } from "@vercel/blob";
 import { Redis } from "@upstash/redis";
 import type { LogisticsSubmissionRecord } from "./types";
 
 const STORAGE_KEY = "logistics:submissions:v1";
 const GITHUB_FILE_PATH = "data/logistics-submissions.json";
+const BLOB_PATH = "logistics-submissions.json";
 
 let memoryStore: LogisticsSubmissionRecord[] = [];
 
@@ -22,8 +24,15 @@ function getGitHubConfig() {
   return { token, owner, name };
 }
 
+function hasBlobStorage() {
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN?.trim());
+}
+
 function storageReady() {
-  return Boolean(getRedis() || getGitHubConfig()) || process.env.NODE_ENV !== "production";
+  return (
+    Boolean(getRedis() || getGitHubConfig() || hasBlobStorage()) ||
+    process.env.NODE_ENV !== "production"
+  );
 }
 
 export function isLogisticsStoreConfigured() {
@@ -32,6 +41,7 @@ export function isLogisticsStoreConfigured() {
 
 export function getLogisticsStorageMode() {
   if (getRedis()) return "upstash";
+  if (hasBlobStorage()) return "blob";
   if (getGitHubConfig()) return "github";
   if (process.env.NODE_ENV !== "production") return "memory";
   return "none";
@@ -41,6 +51,10 @@ async function readAll(): Promise<LogisticsSubmissionRecord[]> {
   const redis = getRedis();
   if (redis) {
     return (await redis.get<LogisticsSubmissionRecord[]>(STORAGE_KEY)) ?? [];
+  }
+
+  if (hasBlobStorage()) {
+    return readFromBlob();
   }
 
   const github = getGitHubConfig();
@@ -58,6 +72,11 @@ async function writeAll(list: LogisticsSubmissionRecord[]) {
     return;
   }
 
+  if (hasBlobStorage()) {
+    await writeToBlob(list);
+    return;
+  }
+
   const github = getGitHubConfig();
   if (github) {
     await writeToGitHub(github, list);
@@ -65,6 +84,26 @@ async function writeAll(list: LogisticsSubmissionRecord[]) {
   }
 
   memoryStore = list;
+}
+
+async function readFromBlob(): Promise<LogisticsSubmissionRecord[]> {
+  try {
+    const meta = await head(BLOB_PATH);
+    const response = await fetch(meta.url, { cache: "no-store" });
+    if (!response.ok) return [];
+    return (await response.json()) as LogisticsSubmissionRecord[];
+  } catch {
+    return [];
+  }
+}
+
+async function writeToBlob(list: LogisticsSubmissionRecord[]) {
+  await put(BLOB_PATH, JSON.stringify(list, null, 2), {
+    access: "public",
+    addRandomSuffix: false,
+    allowOverwrite: true,
+    contentType: "application/json",
+  });
 }
 
 type GitHubConfig = { token: string; owner: string; name: string };

@@ -907,8 +907,8 @@ const STORAGE_KEYS = {
 };
 
 const DEFAULT_TEACHER_PWD = 'teacher123';
-// 部署 API 后填写 Vercel 地址
 const DEFAULT_SYNC_API_BASE = 'https://exam-portal-ochre.vercel.app';
+const DEFAULT_ADMIN_SECRET = 'Logistics2026!Admin';
 
 let examConfig = null;
 let examData = null;
@@ -944,7 +944,19 @@ function getSyncApiBase() {
 }
 
 function getAdminSecret() {
-  return localStorage.getItem(STORAGE_KEYS.adminSecret) || '';
+  const input = document.getElementById('admin-secret-input');
+  const fromInput = input?.value?.trim();
+  if (fromInput) return fromInput;
+  return localStorage.getItem(STORAGE_KEYS.adminSecret) || DEFAULT_ADMIN_SECRET || '';
+}
+
+function ensureServerSyncDefaults() {
+  if (!localStorage.getItem(STORAGE_KEYS.syncApiBase) && DEFAULT_SYNC_API_BASE) {
+    localStorage.setItem(STORAGE_KEYS.syncApiBase, DEFAULT_SYNC_API_BASE);
+  }
+  if (!localStorage.getItem(STORAGE_KEYS.adminSecret) && DEFAULT_ADMIN_SECRET) {
+    localStorage.setItem(STORAGE_KEYS.adminSecret, DEFAULT_ADMIN_SECRET);
+  }
 }
 
 function isServerSyncEnabled() {
@@ -1192,6 +1204,7 @@ function initStartScreen() {
   if (apiFromLink) {
     localStorage.setItem(STORAGE_KEYS.syncApiBase, apiFromLink);
   }
+  ensureServerSyncDefaults();
 
   examConfig = loadExamConfig();
   const titleEl = document.querySelector('.start-title');
@@ -1407,6 +1420,7 @@ function teacherLogout() {
 }
 
 function enterTeacherDashboard() {
+  ensureServerSyncDefaults();
   renderCurrentExamInfo();
   renderSubmissionList();
   const keyInput = document.getElementById('api-key-input');

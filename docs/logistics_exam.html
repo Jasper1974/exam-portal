@@ -1187,6 +1187,12 @@ function saveExamConfig(config) {
 }
 
 function initStartScreen() {
+  const params = new URLSearchParams(window.location.search);
+  const apiFromLink = params.get('api')?.trim().replace(/\/$/, '');
+  if (apiFromLink) {
+    localStorage.setItem(STORAGE_KEYS.syncApiBase, apiFromLink);
+  }
+
   examConfig = loadExamConfig();
   const titleEl = document.querySelector('.start-title');
   const subtitleEl = document.querySelector('.start-subtitle');

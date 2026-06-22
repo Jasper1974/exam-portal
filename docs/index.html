@@ -1,0 +1,2320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《物流战略管理》在线考试系统</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root {
+    --ink: #1a1a2e;
+    --deep: #16213e;
+    --accent: #e94560;
+    --gold: #f5a623;
+    --muted: #8892a4;
+    --surface: #0f3460;
+    --card: rgba(255,255,255,0.04);
+    --border: rgba(255,255,255,0.08);
+    --green: #22c55e;
+    --red: #ef4444;
+    --blue: #3b82f6;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans SC', sans-serif;
+    background: var(--ink);
+    color: #e8eaf6;
+    min-height: 100vh;
+    line-height: 1.7;
+  }
+
+  /* ===== SCREENS ===== */
+  .screen { display: none; }
+  .screen.active { display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* ===== START SCREEN ===== */
+  #start-screen {
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0d1b2a 0%, #1a1a2e 50%, #16213e 100%);
+    text-align: center;
+    padding: 40px 20px;
+  }
+
+  .logo-mark {
+    width: 80px; height: 80px;
+    background: linear-gradient(135deg, var(--accent), var(--gold));
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px; margin: 0 auto 24px;
+    box-shadow: 0 0 40px rgba(233,69,96,0.3);
+  }
+
+  .start-title {
+    font-size: clamp(22px, 5vw, 36px);
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+  .start-subtitle {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 40px;
+  }
+
+  .rules-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    max-width: 520px;
+    width: 100%;
+    text-align: left;
+    margin-bottom: 32px;
+  }
+
+  .rules-box h3 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--gold);
+    margin-bottom: 16px;
+  }
+
+  .rule-item {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: #c5cae9;
+    align-items: flex-start;
+  }
+  .rule-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+  .rule-warn {
+    background: rgba(233,69,96,0.1);
+    border: 1px solid rgba(233,69,96,0.3);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-top: 16px;
+    font-size: 13px;
+    color: #ffcdd2;
+  }
+
+  .student-input-group {
+    max-width: 520px; width: 100%; margin-bottom: 24px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+
+  .input-field {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    color: #e8eaf6;
+    font-size: 15px;
+    font-family: 'Noto Sans SC', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+  .input-field:focus { border-color: var(--accent); }
+  .input-field::placeholder { color: var(--muted); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent) 0%, #c0392b 100%);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 16px 40px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: 'Noto Sans SC', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 20px rgba(233,69,96,0.3);
+    max-width: 520px; width: 100%;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(233,69,96,0.4); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* ===== EXAM SCREEN ===== */
+  #exam-screen {
+    background: #111827;
+  }
+
+  .exam-header {
+    background: rgba(0,0,0,0.4);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+
+  .exam-header-left { display: flex; align-items: center; gap: 16px; }
+  .exam-title-small { font-size: 14px; font-weight: 600; color: #e8eaf6; }
+  .student-badge {
+    background: rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .timer-box {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(233,69,96,0.1);
+    border: 1px solid rgba(233,69,96,0.2);
+    border-radius: 10px;
+    padding: 8px 16px;
+  }
+  .timer-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 2px;
+  }
+  .timer-box.warn { background: rgba(245,166,35,0.15); border-color: rgba(245,166,35,0.4); }
+  .timer-box.warn .timer-display { color: var(--gold); }
+  .timer-box.danger { background: rgba(233,69,96,0.25); border-color: rgba(233,69,96,0.6); animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity: 0.7; } }
+
+  .exam-body {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+
+  .exam-intro {
+    background: rgba(59,130,246,0.08);
+    border: 1px solid rgba(59,130,246,0.2);
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 32px;
+    font-size: 14px;
+    color: #93c5fd;
+    line-height: 1.8;
+  }
+
+  .question-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 28px;
+    transition: border-color 0.2s;
+  }
+  .question-card:hover { border-color: rgba(255,255,255,0.14); }
+
+  .question-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .q-number {
+    background: linear-gradient(135deg, var(--accent), var(--gold));
+    color: white;
+    font-weight: 700;
+    font-size: 13px;
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .q-title { font-size: 17px; font-weight: 600; flex: 1; line-height: 1.5; }
+  .q-score {
+    background: rgba(245,166,35,0.15);
+    border: 1px solid rgba(245,166,35,0.3);
+    color: var(--gold);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+
+  .q-context {
+    background: rgba(0,0,0,0.25);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 18px;
+    font-size: 14px;
+    color: #b0bec5;
+    line-height: 1.8;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 14px 0;
+  }
+  .data-table th {
+    background: rgba(255,255,255,0.06);
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    color: #90caf9;
+    border-bottom: 1px solid var(--border);
+  }
+  .data-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: #cfd8dc;
+    vertical-align: top;
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+
+  .sub-question {
+    margin-bottom: 18px;
+    padding-left: 4px;
+  }
+
+  .sub-q-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #90caf9;
+    margin-bottom: 10px;
+  }
+
+  .answer-textarea {
+    width: 100%;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 14px 16px;
+    color: #e8eaf6;
+    font-size: 14px;
+    font-family: 'Noto Sans SC', sans-serif;
+    resize: vertical;
+    min-height: 120px;
+    outline: none;
+    line-height: 1.7;
+    transition: border-color 0.2s;
+  }
+  .answer-textarea:focus { border-color: var(--accent); }
+  .answer-textarea::placeholder { color: rgba(255,255,255,0.2); }
+
+  .submit-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(17,24,39,0.95);
+    border-top: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+
+  .submit-hint { font-size: 13px; color: var(--muted); }
+  .submit-hint span { color: var(--gold); }
+
+  .btn-submit {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 32px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: 'Noto Sans SC', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 16px rgba(34,197,94,0.3);
+  }
+  .btn-submit:hover { transform: translateY(-2px); }
+  .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* ===== VOID SCREEN ===== */
+  #void-screen {
+    align-items: center;
+    justify-content: center;
+    background: #0d0d0d;
+    text-align: center;
+    padding: 40px;
+  }
+  .void-icon { font-size: 80px; margin-bottom: 24px; }
+  .void-title { font-size: 28px; font-weight: 700; color: var(--accent); margin-bottom: 12px; }
+  .void-msg { color: var(--muted); font-size: 15px; max-width: 400px; line-height: 1.8; }
+
+  /* ===== GRADING SCREEN ===== */
+  #grading-screen {
+    align-items: center;
+    justify-content: center;
+    background: #111827;
+    text-align: center;
+    padding: 40px;
+  }
+  .grading-animation {
+    width: 80px; height: 80px;
+    border: 3px solid rgba(233,69,96,0.2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 24px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .grading-text { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+  .grading-sub { font-size: 14px; color: var(--muted); }
+  .grading-dots::after {
+    content: '';
+    animation: dots 1.5s steps(4, end) infinite;
+  }
+  @keyframes dots {
+    0%, 100% { content: ''; }
+    25% { content: '.'; }
+    50% { content: '..'; }
+    75% { content: '...'; }
+  }
+
+  /* ===== RESULT SCREEN ===== */
+  #result-screen {
+    background: #111827;
+  }
+
+  .result-header {
+    background: linear-gradient(135deg, #0d1b2a, #1a1a2e);
+    padding: 48px 24px 40px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .score-ring {
+    width: 160px; height: 160px;
+    margin: 0 auto 24px;
+    position: relative;
+  }
+  .score-ring svg { transform: rotate(-90deg); }
+  .score-ring .ring-bg { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 8; }
+  .score-ring .ring-fill {
+    fill: none;
+    stroke-width: 8;
+    stroke-linecap: round;
+    stroke-dasharray: 440;
+    stroke-dashoffset: 440;
+    transition: stroke-dashoffset 2s ease;
+  }
+  .score-center {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+  .score-number { font-size: 40px; font-weight: 700; }
+  .score-total { font-size: 14px; color: var(--muted); }
+
+  .result-name { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+  .result-meta { font-size: 13px; color: var(--muted); }
+
+  .result-body {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+
+  .result-section {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px;
+    margin-bottom: 24px;
+  }
+
+  .result-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .result-section-title { font-size: 16px; font-weight: 600; }
+
+  .score-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 15px;
+  }
+  .score-badge.high { background: rgba(34,197,94,0.15); color: #86efac; border: 1px solid rgba(34,197,94,0.3); }
+  .score-badge.mid { background: rgba(245,166,35,0.15); color: #fcd34d; border: 1px solid rgba(245,166,35,0.3); }
+  .score-badge.low { background: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+
+  .feedback-block {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #b0bec5;
+    white-space: pre-wrap;
+  }
+
+  .student-answer-preview {
+    background: rgba(0,0,0,0.2);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 13px;
+    color: #78909c;
+    margin-bottom: 14px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    max-height: 120px;
+    overflow-y: auto;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 16px 0;
+  }
+
+  /* Highlight colors in feedback */
+  .feedback-block .correct { color: #86efac; }
+  .feedback-block .incorrect { color: #fca5a5; }
+
+  .total-bar {
+    background: linear-gradient(135deg, rgba(233,69,96,0.1), rgba(245,166,35,0.1));
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 24px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .total-label { font-size: 16px; font-weight: 600; }
+  .total-score { font-size: 32px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+
+  .print-btn {
+    display: block;
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    color: var(--muted);
+    font-size: 14px;
+    font-family: 'Noto Sans SC', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .print-btn:hover { background: rgba(255,255,255,0.1); color: #e8eaf6; }
+
+  /* Highlight formula */
+  .formula {
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(59,130,246,0.1);
+    border: 1px solid rgba(59,130,246,0.2);
+    border-radius: 6px;
+    padding: 2px 6px;
+    font-size: 13px;
+    color: #93c5fd;
+  }
+
+  /* ===== TEACHER ===== */
+  .teacher-link {
+    margin-top: 20px;
+    font-size: 13px;
+    color: var(--muted);
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-family: 'Noto Sans SC', sans-serif;
+  }
+  .teacher-link:hover { color: #93c5fd; }
+
+  #teacher-screen, #teacher-login-screen, #teacher-grade-screen { background: #111827; }
+
+  .teacher-header {
+    background: rgba(0,0,0,0.4);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .teacher-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 16px 24px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .teacher-tab {
+    background: none;
+    border: none;
+    color: var(--muted);
+    padding: 10px 18px;
+    font-size: 14px;
+    font-family: 'Noto Sans SC', sans-serif;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+  .teacher-tab.active { color: #e8eaf6; border-bottom-color: var(--accent); }
+
+  .teacher-body { max-width: 960px; margin: 0 auto; padding: 24px; width: 100%; }
+
+  .teacher-panel { display: none; }
+  .teacher-panel.active { display: block; }
+
+  .upload-zone {
+    border: 2px dashed rgba(255,255,255,0.15);
+    border-radius: 16px;
+    padding: 40px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 20px;
+  }
+  .upload-zone:hover, .upload-zone.dragover {
+    border-color: var(--accent);
+    background: rgba(233,69,96,0.05);
+  }
+  .upload-zone input { display: none; }
+
+  .btn-secondary {
+    background: rgba(255,255,255,0.08);
+    color: #e8eaf6;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-family: 'Noto Sans SC', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-secondary:hover { background: rgba(255,255,255,0.12); }
+
+  .submission-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .submission-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .submission-meta { flex: 1; }
+  .submission-name { font-weight: 600; margin-bottom: 4px; }
+  .submission-info { font-size: 12px; color: var(--muted); }
+
+  .status-badge {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-weight: 600;
+  }
+  .status-badge.pending { background: rgba(245,166,35,0.15); color: #fcd34d; }
+  .status-badge.graded { background: rgba(34,197,94,0.15); color: #86efac; }
+  .status-badge.auto { background: rgba(59,130,246,0.15); color: #93c5fd; }
+
+  .grade-input-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .grade-input {
+    width: 80px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #e8eaf6;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+  }
+
+  .info-box {
+    background: rgba(59,130,246,0.08);
+    border: 1px solid rgba(59,130,246,0.2);
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-size: 13px;
+    color: #93c5fd;
+    margin-bottom: 20px;
+    line-height: 1.7;
+  }
+
+  .custom-q-content {
+    font-size: 14px;
+    color: #b0bec5;
+    line-height: 1.8;
+    margin-bottom: 18px;
+  }
+  .custom-q-content table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 12px 0;
+  }
+  .custom-q-content td, .custom-q-content th {
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+  }
+
+  .score-lookup {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  @media print {
+    .exam-header, .submit-bar { display: none; }
+    body { background: white; color: black; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== START SCREEN ===== -->
+<div id="start-screen" class="screen active">
+  <div class="logo-mark">📦</div>
+  <h1 class="start-title">《物流战略管理》在线考试</h1>
+  <p class="start-subtitle">AI 自动批改 · 官方命题 PDF · 防作弊系统</p>
+
+  <div class="rules-box">
+    <h3>⚠ 考试须知</h3>
+    <div class="rule-item"><span class="rule-icon">⏱</span><span>考试时长：<strong>90 分钟</strong>，共 4 道大题，满分 100 分</span></div>
+    <div class="rule-item"><span class="rule-icon">📄</span><span>试卷内容来自<strong>官方命题 PDF</strong>，请在答题框内手动计算作答</span></div>
+    <div class="rule-item"><span class="rule-icon">✍️</span><span>内置试卷支持<strong>自动批改</strong>；自定义试卷由老师批改，学号可查成绩</span></div>
+    <div class="rule-item"><span class="rule-icon">🌐</span><span>答题期间请<strong>勿切换标签页或最小化</strong>浏览器</span></div>
+    <div class="rule-warn">🚨 <strong>防作弊警告：</strong>一旦离开本页面，系统将立即检测到操作，试卷自动作废，无法恢复。</div>
+    <div style="margin-top:14px;font-size:13px;color:var(--muted);">
+      📎 命题原文：<a href="logistics_exam_paper_and_answer_key.pdf" target="_blank" style="color:#93c5fd;">logistics_exam_paper_and_answer_key.pdf</a>
+    </div>
+  </div>
+
+  <div class="student-input-group">
+    <input class="input-field" id="student-name" type="text" placeholder="请输入姓名" maxlength="20">
+    <input class="input-field" id="student-id" type="text" placeholder="请输入学号" maxlength="20">
+  </div>
+
+  <button class="btn-primary" id="start-btn" onclick="startExam()">我已阅读须知，开始考试 →</button>
+
+  <div class="score-lookup" style="max-width:520px;width:100%;">
+    <input class="input-field" id="lookup-id" type="text" placeholder="输入学号查询成绩" maxlength="20">
+    <button class="btn-secondary" style="width:100%;margin-top:10px;" onclick="lookupScore()">查询成绩</button>
+    <div id="lookup-result" style="margin-top:12px;font-size:13px;text-align:left;"></div>
+  </div>
+
+  <button class="teacher-link" onclick="showScreen('teacher-login-screen')">👩‍🏫 老师入口</button>
+</div>
+
+<!-- ===== EXAM SCREEN ===== -->
+<div id="exam-screen" class="screen">
+  <div class="exam-header">
+    <div class="exam-header-left">
+      <span class="exam-title-small">《物流战略管理》</span>
+      <span class="student-badge" id="header-student">—</span>
+    </div>
+    <div class="timer-box" id="timer-box">
+      <span>⏱</span>
+      <span class="timer-display" id="timer-display">90:00</span>
+    </div>
+  </div>
+
+  <div class="exam-body">
+    <div class="exam-intro" id="exam-intro">
+      📋 本试卷共 4 题，总分 100 分。请在各题答题框内写明<strong>完整计算步骤</strong>。题目数据与《物流战略管理》课程作业命题 PDF 一致。
+    </div>
+    <div id="questions-container"></div>
+  </div>
+
+  <div class="submit-bar">
+    <div class="submit-hint">答完所有小题后提交 · 提交后不可修改</div>
+    <button class="btn-submit" id="submit-btn" onclick="submitExam()">提交试卷 →</button>
+  </div>
+</div>
+
+<!-- ===== VOID SCREEN ===== -->
+<div id="void-screen" class="screen">
+  <div class="void-icon">🚫</div>
+  <h2 class="void-title">试卷已作废</h2>
+  <p class="void-msg">系统检测到您在考试期间离开了本页面。根据考试规则，本次试卷已自动作废。<br><br>请联系老师重新安排考试。</p>
+</div>
+
+<!-- ===== GRADING SCREEN ===== -->
+<div id="grading-screen" class="screen">
+  <div class="grading-animation"></div>
+  <div class="grading-text">正在批改您的试卷<span class="grading-dots"></span></div>
+  <div class="grading-sub">内置试卷将自动评分，自定义试卷提交后等待老师批改</div>
+</div>
+
+<!-- ===== RESULT SCREEN ===== -->
+<div id="result-screen" class="screen">
+  <div class="result-header">
+    <div class="score-ring">
+      <svg viewBox="0 0 160 160" width="160" height="160">
+        <circle class="ring-bg" cx="80" cy="80" r="70"/>
+        <circle class="ring-fill" id="ring-fill" cx="80" cy="80" r="70"/>
+      </svg>
+      <div class="score-center">
+        <div class="score-number" id="final-score">—</div>
+        <div class="score-total">/ 100</div>
+      </div>
+    </div>
+    <div class="result-name" id="result-name">—</div>
+    <div class="result-meta" id="result-meta">—</div>
+  </div>
+  <div class="result-body" id="result-body"></div>
+</div>
+
+<!-- ===== TEACHER LOGIN ===== -->
+<div id="teacher-login-screen" class="screen">
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:40px 20px;">
+    <div style="max-width:400px;width:100%;text-align:center;">
+      <div class="logo-mark" style="font-size:28px;">👩‍🏫</div>
+      <h2 style="margin-bottom:8px;">老师管理入口</h2>
+      <p style="color:var(--muted);font-size:14px;margin-bottom:24px;">默认密码：teacher123（可在设置中修改）</p>
+      <input class="input-field" id="teacher-pwd" type="password" placeholder="请输入老师密码" style="margin-bottom:16px;">
+      <button class="btn-primary" onclick="teacherLogin()">登录 →</button>
+      <button class="teacher-link" style="display:block;width:100%;margin-top:16px;" onclick="showScreen('start-screen')">← 返回学生入口</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TEACHER DASHBOARD ===== -->
+<div id="teacher-screen" class="screen">
+  <div class="teacher-header">
+    <div>
+      <div style="font-weight:600;">老师管理后台</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px;" id="teacher-exam-info">—</div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn-secondary" onclick="showScreen('start-screen')">学生入口</button>
+      <button class="btn-secondary" onclick="teacherLogout()">退出</button>
+    </div>
+  </div>
+  <div class="teacher-tabs">
+    <button class="teacher-tab active" data-tab="paper" onclick="switchTeacherTab('paper')">📄 试卷管理</button>
+    <button class="teacher-tab" data-tab="grade" onclick="switchTeacherTab('grade')">✍️ 批改中心</button>
+    <button class="teacher-tab" data-tab="settings" onclick="switchTeacherTab('settings')">⚙️ 设置</button>
+  </div>
+  <div class="teacher-body">
+    <div id="tab-paper" class="teacher-panel active">
+      <div class="info-box">
+        上传 Word 文档（.docx）即可作为考试内容。系统会自动识别「第一题」「第二题」等题号，并在「标准答案」之前的内容作为试题。建议 Word 中用小题编号 ①②③ 或（1）（2）区分作答区。
+      </div>
+      <div class="upload-zone" id="word-upload-zone" onclick="document.getElementById('word-file-input').click()">
+        <input type="file" id="word-file-input" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onchange="handleWordUpload(event)">
+        <div style="font-size:36px;margin-bottom:12px;">📎</div>
+        <div style="font-weight:600;margin-bottom:6px;">点击或拖拽上传 Word 试卷</div>
+        <div style="font-size:13px;color:var(--muted);">支持 .docx 格式</div>
+      </div>
+      <div id="current-exam-info" class="result-section" style="margin-bottom:16px;"></div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <button class="btn-secondary" onclick="resetToDefaultExam()">恢复默认 PDF 试卷</button>
+        <button class="btn-primary" style="width:auto;padding:12px 24px;" onclick="previewCurrentExam()">预览当前试卷</button>
+      </div>
+      <div id="word-preview" style="margin-top:24px;"></div>
+    </div>
+    <div id="tab-grade" class="teacher-panel">
+      <div class="info-box" id="pending-count-info">加载中...</div>
+      <div class="submission-list" id="submission-list"></div>
+    </div>
+    <div id="tab-settings" class="teacher-panel">
+      <div class="result-section">
+        <h3 style="margin-bottom:16px;font-size:16px;">修改老师密码</h3>
+        <input class="input-field" id="new-teacher-pwd" type="password" placeholder="新密码" style="margin-bottom:12px;">
+        <button class="btn-primary" onclick="changeTeacherPassword()">保存密码</button>
+      </div>
+      <div class="result-section" style="margin-top:20px;">
+        <h3 style="margin-bottom:12px;font-size:16px;">AI 批改（可选）</h3>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">配置 Anthropic API Key 后可启用云端 AI 辅助批改。未配置时使用本地规则批改（内置试卷）或老师人工批改（自定义试卷）。</p>
+        <input class="input-field" id="api-key-input" type="password" placeholder="sk-ant-..." style="margin-bottom:12px;">
+        <button class="btn-secondary" onclick="saveApiKey()">保存 API Key</button>
+      </div>
+      <div class="result-section" style="margin-top:20px;">
+        <h3 style="margin-bottom:12px;font-size:16px;">数据管理</h3>
+        <button class="btn-secondary" onclick="exportSubmissions()" style="margin-right:10px;">导出全部答卷 JSON</button>
+        <button class="btn-secondary" onclick="clearAllSubmissions()" style="color:#fca5a5;">清空全部答卷</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TEACHER GRADE DETAIL ===== -->
+<div id="teacher-grade-screen" class="screen">
+  <div class="teacher-header">
+    <div>
+      <div style="font-weight:600;" id="grade-student-title">批改答卷</div>
+      <div style="font-size:12px;color:var(--muted);" id="grade-student-meta">—</div>
+    </div>
+    <button class="btn-secondary" onclick="backToTeacherGradeList()">← 返回列表</button>
+  </div>
+  <div class="teacher-body" id="teacher-grade-body"></div>
+  <div class="submit-bar">
+    <div class="submit-hint">填写各题得分与评语后保存</div>
+    <button class="btn-submit" onclick="saveTeacherGrade()">保存批改结果 →</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
+<script>
+// ==========================================
+// STATE & STORAGE
+// ==========================================
+const STORAGE_KEYS = {
+  config: 'logistics_exam_config',
+  submissions: 'logistics_exam_submissions',
+  teacherPwd: 'logistics_teacher_pwd',
+  apiKey: 'logistics_api_key',
+  teacherSession: 'logistics_teacher_session',
+};
+
+const DEFAULT_TEACHER_PWD = 'teacher123';
+
+let examConfig = null;
+let examData = null;
+let studentName = '';
+let studentId = '';
+let timerInterval = null;
+let timeLeft = 90 * 60;
+let examVoided = false;
+let examSubmitted = false;
+let examStarted = false;
+let currentSubmissionId = null;
+let gradingSubmissionId = null;
+
+function getSubmissions() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.submissions) || '[]'); }
+  catch { return []; }
+}
+
+function saveSubmissions(list) {
+  localStorage.setItem(STORAGE_KEYS.submissions, JSON.stringify(list));
+}
+
+function getTeacherPassword() {
+  return localStorage.getItem(STORAGE_KEYS.teacherPwd) || DEFAULT_TEACHER_PWD;
+}
+
+function getApiKey() {
+  return localStorage.getItem(STORAGE_KEYS.apiKey) || '';
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function textToHtml(text) {
+  return escapeHtml(text).replace(/\n/g, '<br>');
+}
+
+// ==========================================
+// EXAM PAPER DATA (from PDF)
+// ==========================================
+const EXAM_PAPER = {
+  q1: {
+    retailPrice: 800,
+    costPrice: 200,
+    margin: 600,
+    totalUnits: 50000,
+    salesDays: 30,
+    seaRate: 4,
+    airRate: 45,
+    seaDays: 25,
+    airDays: 2,
+    markdownPct: 20,
+    markdownUnits: 10000,
+    clearancePrice: 300,
+    stockoutProb_sea: 15,
+    stockoutProb_air: 1,
+    stockoutLoss: 600,
+    airSeaDiff: 41,
+  },
+  q2: {
+    teu: 100000,
+    seaRate: 1500,
+    landA: 100,
+    landB: 900,
+    distance: 800,
+    unpackFee: 80,
+    rentA: 8000000,
+    rentB: 2000000,
+    delayFee: 120,
+  },
+  q3: {
+    fixedCost: 12000,
+    smallLoad: 1500,
+    fullLoad: 10000,
+    overloadUnits: 30000,
+    overloadTrucks: 3,
+    fixedCostOverload: 36000,
+    chaosCost: 20000,
+  },
+  q4: {
+    items: [
+      { code: '001', name: '53度飞天茅台酒（贵重高值品）', qty: 1000, unitVal: 3000, total: 3000000 },
+      { code: '002', name: '戴森 HD15 智能吹风机（高值消费电子）', qty: 800, unitVal: 2500, total: 2000000 },
+      { code: '003', name: '三只松鼠坚果巨型礼盒（中值食品）', qty: 20000, unitVal: 50, total: 1000000 },
+      { code: '004', name: '维达超韧抽纸箱装（低值快消）', qty: 100000, unitVal: 2, total: 200000 },
+      { code: '005', name: '晨光 0.5mm 签字笔芯（低值文具）', qty: 50000, unitVal: 1, total: 50000 },
+    ],
+    grandTotal: 6250000,
+  },
+};
+
+function generateExam() {
+  return JSON.parse(JSON.stringify(EXAM_PAPER));
+}
+
+function getDefaultExamConfig() {
+  return {
+    id: 'default-pdf',
+    type: 'structured',
+    title: '《物流战略管理》在线考试',
+    duration: 90,
+    totalScore: 100,
+    questionCount: 4,
+    sourceFile: 'logistics_exam_paper_and_answer_key.pdf',
+    structured: EXAM_PAPER,
+    custom: null,
+    answerKey: '',
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function loadExamConfig() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEYS.config);
+    if (saved) return JSON.parse(saved);
+  } catch (e) { console.warn(e); }
+  return getDefaultExamConfig();
+}
+
+function saveExamConfig(config) {
+  localStorage.setItem(STORAGE_KEYS.config, JSON.stringify(config));
+  examConfig = config;
+}
+
+function initStartScreen() {
+  examConfig = loadExamConfig();
+  const titleEl = document.querySelector('.start-title');
+  const subtitleEl = document.querySelector('.start-subtitle');
+  if (titleEl) titleEl.textContent = examConfig.title || '《物流战略管理》在线考试';
+  if (subtitleEl) {
+    const src = examConfig.sourceFile ? ` · ${examConfig.sourceFile}` : '';
+    subtitleEl.textContent = `本地规则批改 · 老师人工批改${src}`;
+  }
+  const qCount = examConfig.questionCount || examConfig.custom?.questions?.length || 4;
+  const duration = examConfig.duration || 90;
+  const total = examConfig.totalScore || 100;
+  const ruleTime = document.querySelector('.rules-box .rule-item:first-child span:last-child');
+  if (ruleTime) ruleTime.innerHTML = `考试时长：<strong>${duration} 分钟</strong>，共 ${qCount} 道大题，满分 ${total} 分`;
+  const rulePdf = document.querySelector('.rules-box .rule-item:nth-child(2) span:last-child');
+  if (rulePdf && examConfig.type === 'custom') {
+    rulePdf.innerHTML = `试卷内容来自老师上传的 <strong>${escapeHtml(examConfig.sourceFile || 'Word 文档')}</strong>，请在答题框内作答`;
+  }
+}
+
+// ==========================================
+// WORD PARSING
+// ==========================================
+async function handleWordUpload(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  if (!file.name.toLowerCase().endsWith('.docx')) {
+    alert('请上传 .docx 格式的 Word 文档');
+    return;
+  }
+  try {
+    const buffer = await file.arrayBuffer();
+    const [htmlResult, textResult] = await Promise.all([
+      mammoth.convertToHtml({ arrayBuffer: buffer }),
+      mammoth.extractRawText({ arrayBuffer: buffer }),
+    ]);
+    const parsed = parseWordExam(textResult.value, htmlResult.value, file.name);
+    saveExamConfig(parsed);
+    renderCurrentExamInfo();
+    document.getElementById('word-preview').innerHTML = `
+      <div class="result-section">
+        <div class="result-section-header">
+          <div class="result-section-title">解析预览（共 ${parsed.custom.questions.length} 题）</div>
+        </div>
+        ${parsed.custom.questions.map((q, i) => `
+          <div style="margin-bottom:20px;">
+            <div style="font-weight:600;color:#90caf9;margin-bottom:8px;">第 ${i + 1} 题：${escapeHtml(q.title)}（${q.score}分）</div>
+            <div class="custom-q-content">${q.contentHtml}</div>
+            <div style="font-size:12px;color:var(--muted);">小题数：${q.subQuestions.length}</div>
+          </div>
+        `).join('')}
+      </div>`;
+    alert(`试卷上传成功！已识别 ${parsed.custom.questions.length} 道大题，学生端将使用新试卷。`);
+  } catch (err) {
+    console.error(err);
+    alert('Word 解析失败：' + err.message);
+  }
+  event.target.value = '';
+}
+
+function parseWordExam(rawText, rawHtml, fileName) {
+  const answerKeyMarkers = /(?:🤖\s*)?(?:AI\s*)?(?:评分)?标准答案|参考答案|采分点|AI 评分标准答案/i;
+  let questionText = rawText.replace(/\r/g, '');
+  let answerKey = '';
+  const akIdx = questionText.search(answerKeyMarkers);
+  if (akIdx > 100) {
+    answerKey = questionText.slice(akIdx).trim();
+    questionText = questionText.slice(0, akIdx).trim();
+  }
+
+  // Remove header/footer noise
+  questionText = questionText.replace(/第\s*\d+\s*页\s*\/\s*共\s*\d+\s*页/g, '');
+  questionText = questionText.replace(/《物流战略管理》课程作业命题及.*?答案/g, '');
+
+  let sections = questionText.split(/(?=第[一二三四五六七八九十百千\d]+题)/).map(s => s.trim()).filter(Boolean);
+
+  if (sections.length === 0 || (sections.length === 1 && !/^第/.test(sections[0]))) {
+    sections = questionText.split(/\n{2,}/).filter(s => s.trim().length > 30);
+  }
+
+  const htmlSections = rawHtml.split(/(?=<p[^>]*>\s*第[一二三四五六七八九十\d]+题)/i);
+
+  const questions = sections.map((sec, i) => {
+    const titleLine = sec.match(/^第[一二三四五六七八九十百千\d]+题[：:\s]*(.+)?/);
+    let title = titleLine ? (titleLine[1] || titleLine[0]).trim().split('\n')[0] : `第 ${i + 1} 题`;
+    title = title.replace(/^[：:\s]+/, '').slice(0, 80) || `第 ${i + 1} 题`;
+
+    let body = sec.replace(/^第[一二三四五六七八九十百千\d]+题[：:\s]*[^\n]*\n?/, '').trim();
+    const scoreMatch = sec.match(/(\d+)\s*分/);
+    const score = scoreMatch ? parseInt(scoreMatch[1], 10) : Math.floor(100 / Math.max(sections.length, 1));
+
+    const contentHtml = htmlSections[i + 1]
+      ? htmlSections[i + 1].replace(/^<p[^>]*>第[一二三四五六七八九十\d]+题[^<]*<\/p>/i, '')
+      : textToHtml(body);
+
+    const subQuestions = extractSubQuestions(body, i, score);
+    return { id: `cq${i + 1}`, title, score, contentHtml, body, subQuestions };
+  }).filter(q => q.body.length > 20 || q.title);
+
+  if (questions.length === 0) {
+    questions.push({
+      id: 'cq1',
+      title: fileName.replace(/\.docx$/i, ''),
+      score: 100,
+      contentHtml: rawHtml,
+      body: questionText,
+      subQuestions: [{ id: 'cq1a', label: '请作答', score: 100, maxScore: 100 }],
+    });
+  }
+
+  const totalScore = questions.reduce((s, q) => s + q.score, 0) || 100;
+
+  return {
+    id: 'word-' + Date.now(),
+    type: 'custom',
+    title: fileName.replace(/\.docx$/i, '') + ' 在线考试',
+    duration: 90,
+    totalScore,
+    questionCount: questions.length,
+    sourceFile: fileName,
+    structured: null,
+    custom: { questions },
+    answerKey,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function extractSubQuestions(body, qIndex, totalScore) {
+  const parts = body.split(/(?=[①②③④⑤⑥⑦⑧⑨⑩])|(?=\(\d+\)\s)|(?=（\d+）\s)/).map(s => s.trim()).filter(Boolean);
+  const subParts = parts.length > 1 ? parts : [];
+
+  if (subParts.length === 0) {
+    const numbered = body.split(/(?=\n\s*[（(]?\d+[）)]\s*[【[]?\d+分)/).filter(s => s.trim().length > 5);
+    if (numbered.length > 1) subParts.push(...numbered);
+  }
+
+  if (subParts.length === 0) {
+    return [{ id: `cq${qIndex + 1}a`, label: '请在本题答题区作答', score: totalScore, maxScore: totalScore }];
+  }
+
+  const perScore = Math.floor(totalScore / subParts.length);
+  return subParts.map((part, j) => {
+    const labelLine = part.split('\n')[0].slice(0, 120);
+    const scoreMatch = part.match(/【?\s*(\d+)\s*分\s*】?/);
+    const sqScore = scoreMatch ? parseInt(scoreMatch[1], 10) : perScore;
+    return {
+      id: `cq${qIndex + 1}${String.fromCharCode(97 + j)}`,
+      label: labelLine,
+      score: sqScore,
+      maxScore: sqScore,
+    };
+  });
+}
+
+function resetToDefaultExam() {
+  if (!confirm('确定恢复为默认 PDF 试卷？')) return;
+  saveExamConfig(getDefaultExamConfig());
+  renderCurrentExamInfo();
+  document.getElementById('word-preview').innerHTML = '';
+  alert('已恢复默认试卷');
+}
+
+function renderCurrentExamInfo() {
+  const cfg = loadExamConfig();
+  const el = document.getElementById('current-exam-info');
+  if (!el) return;
+  el.innerHTML = `
+    <div class="result-section-header" style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border);">
+      <div class="result-section-title">当前生效试卷</div>
+    </div>
+    <div style="font-size:14px;line-height:1.9;">
+      <div><strong>名称：</strong>${escapeHtml(cfg.title)}</div>
+      <div><strong>来源：</strong>${escapeHtml(cfg.sourceFile || '内置')}</div>
+      <div><strong>类型：</strong>${cfg.type === 'structured' ? '内置结构化试卷（支持自动批改）' : 'Word 自定义试卷（需老师批改）'}</div>
+      <div><strong>题数：</strong>${cfg.questionCount || (cfg.custom?.questions?.length ?? 4)} 道 · <strong>时长：</strong>${cfg.duration} 分钟</div>
+      <div><strong>更新时间：</strong>${new Date(cfg.updatedAt).toLocaleString('zh-CN')}</div>
+    </div>`;
+  const info = document.getElementById('teacher-exam-info');
+  if (info) info.textContent = `当前试卷：${cfg.sourceFile || cfg.title}`;
+}
+
+function previewCurrentExam() {
+  examConfig = loadExamConfig();
+  if (examConfig.type === 'structured') {
+    examData = generateExam();
+    renderStructuredQuestions(examData);
+  } else {
+    renderCustomQuestions(examConfig.custom);
+  }
+  document.getElementById('header-student').textContent = '预览模式';
+  document.getElementById('exam-intro').innerHTML = '📋 <strong>老师预览模式</strong> — 当前试卷内容如下';
+  document.querySelector('.submit-bar').style.display = 'none';
+  showScreen('exam-screen');
+}
+
+// ==========================================
+// TEACHER AUTH & DASHBOARD
+// ==========================================
+function teacherLogin() {
+  const pwd = document.getElementById('teacher-pwd').value;
+  if (pwd !== getTeacherPassword()) {
+    alert('密码错误');
+    return;
+  }
+  sessionStorage.setItem(STORAGE_KEYS.teacherSession, '1');
+  enterTeacherDashboard();
+}
+
+function teacherLogout() {
+  sessionStorage.removeItem(STORAGE_KEYS.teacherSession);
+  showScreen('start-screen');
+}
+
+function enterTeacherDashboard() {
+  renderCurrentExamInfo();
+  renderSubmissionList();
+  const keyInput = document.getElementById('api-key-input');
+  if (keyInput) keyInput.value = getApiKey();
+  setupWordDropZone();
+  showScreen('teacher-screen');
+}
+
+function switchTeacherTab(tab) {
+  document.querySelectorAll('.teacher-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.teacher-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'grade') renderSubmissionList();
+}
+
+function changeTeacherPassword() {
+  const pwd = document.getElementById('new-teacher-pwd').value.trim();
+  if (pwd.length < 4) { alert('密码至少 4 位'); return; }
+  localStorage.setItem(STORAGE_KEYS.teacherPwd, pwd);
+  alert('密码已更新');
+}
+
+function saveApiKey() {
+  const key = document.getElementById('api-key-input').value.trim();
+  localStorage.setItem(STORAGE_KEYS.apiKey, key);
+  alert(key ? 'API Key 已保存' : 'API Key 已清除');
+}
+
+function setupWordDropZone() {
+  const zone = document.getElementById('word-upload-zone');
+  if (!zone || zone.dataset.bound) return;
+  zone.dataset.bound = '1';
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) handleWordUpload({ target: { files: [file], value: '' } });
+  });
+}
+
+function exportSubmissions() {
+  const data = JSON.stringify(getSubmissions(), null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'exam_submissions_' + Date.now() + '.json';
+  a.click();
+}
+
+function clearAllSubmissions() {
+  if (!confirm('确定清空全部学生答卷？此操作不可恢复。')) return;
+  saveSubmissions([]);
+  renderSubmissionList();
+}
+
+// ==========================================
+// RENDER EXAM (structured + custom)
+// ==========================================
+function renderExam(cfg) {
+  if (cfg.type === 'structured') {
+    examData = generateExam();
+    renderStructuredQuestions(examData);
+  } else {
+    renderCustomQuestions(cfg.custom);
+  }
+  const qCount = cfg.questionCount || cfg.custom?.questions?.length || 4;
+  document.getElementById('exam-intro').innerHTML =
+    `📋 本试卷共 ${qCount} 题，总分 ${cfg.totalScore} 分。请在各题答题框内写明<strong>完整作答内容</strong>。`;
+  document.querySelector('.exam-title-small').textContent = cfg.title;
+  document.querySelector('.submit-bar').style.display = '';
+}
+
+function renderStructuredQuestions(data) {
+  const container = document.getElementById('questions-container');
+  container.innerHTML = `
+    ${renderQ1(data.q1)}
+    ${renderQ2(data.q2)}
+    ${renderQ3(data.q3)}
+    ${renderQ4(data.q4)}
+  `;
+}
+
+function renderCustomQuestions(custom) {
+  const container = document.getElementById('questions-container');
+  container.innerHTML = custom.questions.map((q, i) => `
+    <div class="question-card">
+      <div class="question-header">
+        <div class="q-number">${String(i + 1).padStart(2, '0')}</div>
+        <div class="q-title">${escapeHtml(q.title)}</div>
+        <div class="q-score">${q.score}分</div>
+      </div>
+      <div class="custom-q-content">${q.contentHtml}</div>
+      ${q.subQuestions.map(sq => `
+        <div class="sub-question">
+          <div class="sub-q-label">${escapeHtml(sq.label)}${sq.maxScore ? ` 【${sq.maxScore}分】` : ''}</div>
+          <textarea class="answer-textarea" id="${sq.id}" placeholder="请在此作答..." rows="6"></textarea>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+function renderQ1(d) {
+  return `
+  <div class="question-card">
+    <div class="question-header">
+      <div class="q-number">01</div>
+      <div class="q-title">快时尚物流总成本（Total Logistics Cost）定量权衡机制</div>
+      <div class="q-score">25分</div>
+    </div>
+    <div class="q-context">
+      西班牙快时尚巨头 ZARA 总部设计了一款全新秋季"小香风"女士外套。该时装单件在中国市场的零售价为 <strong>${d.retailPrice} 元</strong>，西班牙本土工厂生产成本（含面料与加工）为 <strong>${d.costPrice} 元</strong>，即单件销售毛利高达 <strong>${d.margin} 元</strong>。
+      <br><br>
+      该时装生命周期极短，黄金销售窗口期仅有 <strong>${d.salesDays} 天</strong>，过期则必须打折清仓。现针对中国华东市场 <strong>${d.totalUnits.toLocaleString()} 件</strong>的首批到货量，供应链总监面临两种物流渠道决策：
+      <br><br>
+      <strong>方案 A（传统海运网络）：</strong>走海运通过苏伊士运河到达上海港，再陆运至门店。响应周期长，极易因滞后产生库存跌价与断货风险。<br>
+      <strong>方案 B（航空直发网络）：</strong>从萨拉戈萨全球空运枢纽直接装上货机直飞上海，落地后立即派送。
+    </div>
+
+    <table class="data-table">
+      <thead><tr><th>费用/损失项目</th><th>方案 A（传统海运）</th><th>方案 B（极速空运）</th></tr></thead>
+      <tbody>
+        <tr><td>单件干线运费</td><td>${d.seaRate} 元/件</td><td>${d.airRate} 元/件</td></tr>
+        <tr><td>供应链响应时间</td><td>${d.seaDays} 天</td><td>${d.airDays} 天</td></tr>
+        <tr><td>降价清仓损失</td><td>预计有 ${d.markdownPct}% 的衣服（${d.markdownUnits.toLocaleString()} 件）错过最佳销售期，只能按 ${d.clearancePrice} 元亏本清仓</td><td>无清仓风险，损失 = 0 元</td></tr>
+        <tr><td>潜在缺货期望损失</td><td>缺货概率 ${d.stockoutProb_sea}%，单件缺货损失 ${d.stockoutLoss} 元</td><td>缺货概率 ${d.stockoutProb_air}%，单件缺货损失 ${d.stockoutLoss} 元</td></tr>
+      </tbody>
+    </table>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:18px;">
+      已知物流总成本计算公式：TC = C<sub>trans</sub> + C<sub>markdown</sub> + C<sub>stockout</sub><br>
+      降价损失 = 降价件数 × (原零售价 - 清仓价)；缺货期望损失 = 总件数 × 缺货概率 × 单件缺货损失
+    </div>
+
+    <div class="sub-question">
+      <div class="sub-q-label">① 【15分】定量决策计算：请分别计算方案 A（传统海运）和方案 B（极速空运）的物流总成本（需写出详细计算步骤）</div>
+      <textarea class="answer-textarea" id="q1a" placeholder="请写出每项成本的计算步骤，包括：运输成本、降价损失、缺货期望损失，以及最终汇总..." rows="8"></textarea>
+    </div>
+
+    <div class="sub-question">
+      <div class="sub-q-label">② 【10分】供应链战略分析：虽然空运运费比海运贵了整整 ${d.airSeaDiff} 元/件，但计算结果支持哪种方案？请从"效率型供应链（Efficient）"与"响应型供应链（Responsive）"的角度，分析为什么"速度"能够战胜"低运费"？</div>
+      <textarea class="answer-textarea" id="q1b" placeholder="请说明最终决策，并从供应链类型匹配理论角度展开分析..." rows="6"></textarea>
+    </div>
+  </div>`;
+}
+
+function renderQ2(d) {
+  return `
+  <div class="question-card">
+    <div class="question-header">
+      <div class="q-number">02</div>
+      <div class="q-title">集装箱标准化对全球供应链与宏观选址的重塑</div>
+      <div class="q-score">25分</div>
+    </div>
+    <div class="q-context">
+      特斯拉（Tesla）在筹建亚洲超级工厂与全球仓储配送基地时，选址团队面临两个最终备选方案。工厂投产后，预计每年需要从全球进口核心零部件并向全球出口成品电动车，物流总量折合 <strong>${d.teu.toLocaleString()} 个标准集装箱（TEU）/年</strong>。
+      <br><br>
+      <strong>方案 A（沿海临港选址 - 临近上海深水港）：</strong>距离集装箱码头车程仅 20 公里，海运集装箱卡车可直达工厂，实现多式联运无缝衔接。<br>
+      <strong>方案 B（内陆腹地选址 - 某内陆中部城市）：</strong>距离最近的集装箱港口 <strong>${d.distance} 公里</strong>。货物走海运到达港口后，必须通过内陆长途拖车运往工厂，且部分核心零部件因不具备内陆整箱直达条件，需在港口进行拆箱后改用普通散货卡车运输。
+    </div>
+
+    <table class="data-table">
+      <thead><tr><th>费用/损失项目</th><th>方案 A（沿海临港选址）</th><th>方案 B（内陆腹地选址）</th></tr></thead>
+      <tbody>
+        <tr><td>年海运集装箱基本运费</td><td>$${d.seaRate.toLocaleString()}/TEU</td><td>$${d.seaRate.toLocaleString()}/TEU</td></tr>
+        <tr><td>港口到工厂内陆疏运费</td><td>$${d.landA}/TEU（短驳）</td><td>$${d.landB}/TEU（${d.distance} 公里陆运）</td></tr>
+        <tr><td>非标准化装卸与拆箱费</td><td>$0</td><td>$${d.unpackFee}/TEU</td></tr>
+        <tr><td>工厂年土地租金与税收</td><td>$${(d.rentA/1000000).toFixed(1)}M/年</td><td>$${(d.rentB/1000000).toFixed(1)}M/年</td></tr>
+        <tr><td>集装箱周转延误资金占用</td><td>$0</td><td>$${d.delayFee}/TEU</td></tr>
+      </tbody>
+    </table>
+
+    <div class="sub-question">
+      <div class="sub-q-label">① 【5分】公式构建：请根据题目变量，写出本案例中工厂年物流与运营总成本（TC）的构成公式（用各费用的英文缩写或文字表示）</div>
+      <textarea class="answer-textarea" id="q2a" placeholder="TC = ..." rows="3"></textarea>
+    </div>
+
+    <div class="sub-question">
+      <div class="sub-q-label">② 【10分】定量计算：请分别计算方案 A（沿海临港）和方案 B（内陆腹地）的年总运营成本</div>
+      <textarea class="answer-textarea" id="q2b" placeholder="请列出每项费用的计算过程，并汇总两方案的年总成本..." rows="8"></textarea>
+    </div>
+
+    <div class="sub-question">
+      <div class="sub-q-label">③ 【10分】宏观选址反思：请根据计算结果做出最终选址决策，并分析集装箱的标准化是如何击碎内陆土地便宜的绝对优势，从而让全球供应链企业产生强烈的"偏爱临港"倾向？</div>
+      <textarea class="answer-textarea" id="q2c" placeholder="请给出决策结论并展开分析..." rows="6"></textarea>
+    </div>
+  </div>`;
+}
+
+function renderQ3(d) {
+  return `
+  <div class="question-card">
+    <div class="question-header">
+      <div class="q-number">03</div>
+      <div class="q-title">干线运输中的"规模经济"与"规模不经济"精算</div>
+      <div class="q-score">25分</div>
+    </div>
+    <div class="q-context">
+      某大型头部快递企业运营一条"深圳→北京"的公路干线快递专线。单辆 17.5 米公路重卡厢式货车单程运行一次的固定成本是完全锁定的（包含双司机工资、燃油费、高速公路路桥费、车辆折旧，合计固定支出为 <strong>${d.fixedCost.toLocaleString()} 元/单程</strong>）。
+      <br><br>
+      现针对不同的业务规模场景，该专线网点的运营效益和单件快递成本呈现出剧烈的波动。请精算以下三种规模场景下的成本表现：
+      <br><br>
+      <strong>场景 1（规模不足 - 零散小网点）：</strong>货源严重不足，卡车装载率极低，单卡车单程只能揽收到 <strong>${d.smallLoad.toLocaleString()} 件</strong>快递。<br>
+      <strong>场景 2（规模经济 - 满载大厂）：</strong>凭借覆盖全国的庞大拼单网络与货源，卡车全部达到 100% 满载，单卡车单程可容纳 <strong>${d.fullLoad.toLocaleString()} 件</strong>快递。<br>
+      <strong>场景 3（规模过大 - 超负荷爆仓）：</strong>网点在双十一当天强行揽收了 <strong>${d.overloadUnits.toLocaleString()} 件</strong>快递。虽然可以用 ${d.overloadTrucks} 辆大卡车装完（固定成本线性增加为 ${d.fixedCost.toLocaleString()} × ${d.overloadTrucks} = ${d.fixedCostOverload.toLocaleString()} 元），但由于快件量瞬间超出了该网点场地分拣流水线的核心吞吐极限，引发严重爆仓，额外产生了 <strong>${d.chaosCost.toLocaleString()} 元</strong>的场地混乱管理变动成本。
+    </div>
+
+    <div class="sub-question">
+      <div class="sub-q-label">① 【5分】计算在场景 1 下，单件快递所分摊的干线运输固定成本是多少元？</div>
+      <textarea class="answer-textarea" id="q3a" placeholder="请写出计算过程..." rows="3"></textarea>
+    </div>
+
+    <div class="sub-question">
+      <div class="sub-q-label">② 【5分】计算在场景 2 下，单件快递所分摊的干线运输固定成本是多少元？</div>
+      <textarea class="answer-textarea" id="q3b" placeholder="请写出计算过程..." rows="3"></textarea>
+    </div>
+
+    <div class="sub-question">
+      <div class="sub-q-label">③ 【5分】计算在场景 3 下，这 ${d.overloadUnits.toLocaleString()} 件快递的总综合固定成本及最终的单件综合干线成本是多少元？</div>
+      <textarea class="answer-textarea" id="q3c" placeholder="请写出总成本和单件成本的计算过程..." rows="4"></textarea>
+    </div>
+
+    <div class="sub-question">
+      <div class="sub-q-label">④ 【10分】物流管理深度反思：结合计算结果，阐述为什么规模大、单量多的物流巨头能够玩得起"九块九包邮"甚至更低的低价竞争？同时，为什么说物流规模并不是无限大越好？企业应该如何防止进入"规模不经济"的泥潭？</div>
+      <textarea class="answer-textarea" id="q3d" placeholder="请结合数字展开分析..." rows="6"></textarea>
+    </div>
+  </div>`;
+}
+
+function renderQ4(d) {
+  const tableRows = d.items.map(i => `
+    <tr>
+      <td>${i.code}</td>
+      <td>${i.name}</td>
+      <td>${i.qty.toLocaleString()}</td>
+      <td>${i.unitVal.toLocaleString()}</td>
+      <td>${i.total.toLocaleString()}</td>
+    </tr>
+  `).join('');
+
+  return `
+  <div class="question-card">
+    <div class="question-header">
+      <div class="q-number">04</div>
+      <div class="q-title">运用 ABC 分类法进行多维度仓储控制与拣货动线设计</div>
+      <div class="q-score">25分</div>
+    </div>
+    <div class="q-context">
+      假设你是天猫超市华东大区超级中央仓（DFC）的库存与运营主管。临近"双十一"大促，为了最大化提升非全自动化人工拣货波次的库内效率，并保证高价值物资的绝对安全与资金周转率，你需要对大区仓内核心的 5 种重点畅销商品进行 ABC 分类，并设计对应的空间布局和采购日常盘点决策。
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr><th>商品编码</th><th>商品名称 / 细分品类</th><th>每月预计销售量（件）</th><th>单件产品库存价值（元）</th><th>月度总消耗资金额（元）</th></tr>
+      </thead>
+      <tbody>
+        ${tableRows}
+        <tr style="background:rgba(255,255,255,0.04)">
+          <td colspan="4" style="font-weight:600;color:#90caf9;">全仓核心畅销品月总消耗资金额总计</td>
+          <td style="font-weight:600;color:#90caf9;">${d.grandTotal.toLocaleString()}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:18px;">
+      ABC 分类参考标准：A 类（资金占比约 70%~80%）；B 类（约 15%~20%）；C 类（约 5%~10%）
+    </div>
+
+    <div class="sub-question">
+      <div class="sub-q-label">① 【10分】定量分类：计算每种商品月度总消耗资金额占全仓总资金额的百分比（%），并明确划分 ABC 类别</div>
+      <textarea class="answer-textarea" id="q4a" placeholder="请逐一计算每件商品占比（%），并标出 A/B/C 类别，给出各类合计占比..." rows="8"></textarea>
+    </div>
+
+    <div class="sub-question">
+      <div class="sub-q-label">② 【8分】针对 A 类商品（如茅台、戴森），从资金占用与贵重安全角度出发，制定日常盘点频率及仓库内最佳存放位置，并说明理由</div>
+      <textarea class="answer-textarea" id="q4b" placeholder="请分别说明 A 类商品的盘点策略和空间位置策略，并给出理由..." rows="6"></textarea>
+    </div>
+
+    <div class="sub-question">
+      <div class="sub-q-label">③ 【7分】针对 C 类商品（如抽纸、笔芯），应采取大批量低频次还是小批量高频次的采购策略？请结合资金成本与管理成本阐述理由</div>
+      <textarea class="answer-textarea" id="q4c" placeholder="请给出明确采购策略选择，并从资金成本和管理成本两个维度展开论述..." rows="6"></textarea>
+    </div>
+  </div>`;
+}
+
+// ==========================================
+// TIMER
+// ==========================================
+function startTimer() {
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+    const s = (timeLeft % 60).toString().padStart(2, '0');
+    document.getElementById('timer-display').textContent = `${m}:${s}`;
+
+    const box = document.getElementById('timer-box');
+    if (timeLeft <= 300) { box.className = 'timer-box danger'; }
+    else if (timeLeft <= 900) { box.className = 'timer-box warn'; }
+
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      submitExam();
+    }
+  }, 1000);
+}
+
+// ==========================================
+// ANTI-CHEAT
+// ==========================================
+function setupAntiCheat() {
+  document.addEventListener('visibilitychange', handleLeave);
+  window.addEventListener('blur', handleLeave);
+  window.addEventListener('beforeunload', (e) => {
+    if (!examSubmitted && examStarted) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+}
+
+function handleLeave() {
+  if (!examStarted || examSubmitted || examVoided) return;
+  if (document.hidden || !document.hasFocus()) {
+    voidExam();
+  }
+}
+
+function voidExam() {
+  examVoided = true;
+  examStarted = false;
+  clearInterval(timerInterval);
+  showScreen('void-screen');
+}
+
+// ==========================================
+// START EXAM
+// ==========================================
+function startExam() {
+  studentName = document.getElementById('student-name').value.trim();
+  studentId = document.getElementById('student-id').value.trim();
+  if (!studentName || !studentId) {
+    alert('请填写姓名和学号！');
+    return;
+  }
+
+  examConfig = loadExamConfig();
+  timeLeft = (examConfig.duration || 90) * 60;
+  document.getElementById('timer-display').textContent =
+    `${String(Math.floor(timeLeft / 60)).padStart(2, '0')}:${String(timeLeft % 60).padStart(2, '0')}`;
+
+  renderExam(examConfig);
+
+  document.getElementById('header-student').textContent = `${studentName} · ${studentId}`;
+  showScreen('exam-screen');
+
+  setTimeout(() => {
+    examStarted = true;
+    startTimer();
+  }, 500);
+}
+
+// ==========================================
+// COLLECT ANSWERS
+// ==========================================
+function collectAnswers() {
+  if (examConfig?.type === 'custom') {
+    const answers = {};
+    examConfig.custom.questions.forEach(q => {
+      q.subQuestions.forEach(sq => {
+        const el = document.getElementById(sq.id);
+        answers[sq.id] = el ? el.value : '';
+      });
+    });
+    return answers;
+  }
+  return {
+    q1a: document.getElementById('q1a')?.value || '',
+    q1b: document.getElementById('q1b')?.value || '',
+    q2a: document.getElementById('q2a')?.value || '',
+    q2b: document.getElementById('q2b')?.value || '',
+    q2c: document.getElementById('q2c')?.value || '',
+    q3a: document.getElementById('q3a')?.value || '',
+    q3b: document.getElementById('q3b')?.value || '',
+    q3c: document.getElementById('q3c')?.value || '',
+    q3d: document.getElementById('q3d')?.value || '',
+    q4a: document.getElementById('q4a')?.value || '',
+    q4b: document.getElementById('q4b')?.value || '',
+    q4c: document.getElementById('q4c')?.value || '',
+  };
+}
+
+function countAnswered(answers) {
+  return Object.values(answers).filter(v => v.trim().length > 0).length;
+}
+
+function getTotalSubQuestions() {
+  if (examConfig?.type === 'custom') {
+    return examConfig.custom.questions.reduce((s, q) => s + q.subQuestions.length, 0);
+  }
+  return 12;
+}
+
+function saveSubmission(answers, status, result) {
+  const submission = {
+    id: (crypto.randomUUID && crypto.randomUUID()) || ('sub-' + Date.now()),
+    studentName,
+    studentId,
+    examId: examConfig.id,
+    examType: examConfig.type,
+    examTitle: examConfig.title,
+    sourceFile: examConfig.sourceFile,
+    examSnapshot: examConfig.type === 'custom' ? JSON.parse(JSON.stringify(examConfig.custom)) : null,
+    totalScore: examConfig.totalScore,
+    answers,
+    status,
+    result,
+    teacherGrade: null,
+    submittedAt: new Date().toISOString(),
+  };
+  const list = getSubmissions();
+  list.unshift(submission);
+  saveSubmissions(list);
+  currentSubmissionId = submission.id;
+  return submission;
+}
+
+// ==========================================
+// SUBMIT
+// ==========================================
+async function submitExam() {
+  if (examVoided) return;
+  const answers = collectAnswers();
+  const totalSubs = getTotalSubQuestions();
+  const totalAnswered = countAnswered(answers);
+  if (totalAnswered < Math.ceil(totalSubs / 2)) {
+    if (!confirm(`您还有 ${totalSubs - totalAnswered} 个小题未作答，确认提交吗？`)) return;
+  } else {
+    if (!confirm('确认提交试卷？提交后无法修改。')) return;
+  }
+
+  examSubmitted = true;
+  clearInterval(timerInterval);
+  document.removeEventListener('visibilitychange', handleLeave);
+  window.removeEventListener('blur', handleLeave);
+
+  showScreen('grading-screen');
+  await gradeExam(answers);
+}
+
+// ==========================================
+// LOCAL RULE-BASED GRADING (built-in exam)
+// ==========================================
+function numbersIn(text) {
+  return (String(text).match(/[\d,]+\.?\d*/g) || [])
+    .map(s => parseFloat(s.replace(/,/g, '')))
+    .filter(n => !isNaN(n));
+}
+
+function hasNumber(text, target, tolerance = 0.03) {
+  return numbersIn(text).some(n => Math.abs(n - target) <= Math.max(Math.abs(target) * tolerance, 1000));
+}
+
+function hasAnyNumber(text, targets, tolerance = 0.03) {
+  return targets.some(t => hasNumber(text, t, tolerance));
+}
+
+function keywordScore(text, keywords, maxScore) {
+  const t = String(text);
+  const hit = keywords.filter(kw => t.includes(kw) || new RegExp(kw, 'i').test(t)).length;
+  return Math.min(maxScore, Math.round(maxScore * hit / keywords.length));
+}
+
+function computeCorrectAnswers(d) {
+  const { q1, q2, q3 } = d;
+  return {
+    q1_transA: q1.totalUnits * q1.seaRate,
+    q1_markdownA: q1.markdownUnits * (q1.retailPrice - q1.clearancePrice),
+    q1_stockoutA: q1.totalUnits * (q1.stockoutProb_sea / 100) * q1.margin,
+    q1_transB: q1.totalUnits * q1.airRate,
+    q1_stockoutB: q1.totalUnits * (q1.stockoutProb_air / 100) * q1.margin,
+    q2_totalA: q2.teu * q2.seaRate + q2.teu * q2.landA + q2.rentA,
+    q2_totalB: q2.teu * q2.seaRate + q2.teu * q2.landB + q2.teu * q2.unpackFee + q2.rentB + q2.teu * q2.delayFee,
+    q3_s1: q3.fixedCost / q3.smallLoad,
+    q3_s2: q3.fixedCost / q3.fullLoad,
+    q3_totalS3: q3.fixedCostOverload + q3.chaosCost,
+    q3_unitS3: (q3.fixedCostOverload + q3.chaosCost) / q3.overloadUnits,
+  };
+}
+
+function gradeBuiltInLocally(answers, d) {
+  const c = computeCorrectAnswers(d);
+  const q1totalA = c.q1_transA + c.q1_markdownA + c.q1_stockoutA;
+  const q1totalB = c.q1_transB + c.q1_stockoutB;
+
+  let q1_calc = 0;
+  if (hasNumber(answers.q1a, c.q1_transA)) q1_calc += 2.5;
+  if (hasNumber(answers.q1a, c.q1_markdownA)) q1_calc += 2.5;
+  if (hasNumber(answers.q1a, c.q1_stockoutA)) q1_calc += 2.5;
+  if (hasNumber(answers.q1a, c.q1_transB)) q1_calc += 2.5;
+  if (/方案\s*B|markdown\s*=\s*0|降价.*0\s*元|损失\s*=\s*0/.test(answers.q1a)) q1_calc += 2.5;
+  if (hasNumber(answers.q1a, c.q1_stockoutB)) q1_calc += 2.5;
+  q1_calc = Math.min(15, q1_calc);
+
+  let q1_analysis = 0;
+  if (/方案\s*B|空运|极速|响应/.test(answers.q1b)) q1_analysis += 2;
+  if (/效益背反|全成本|隐性|权衡|跌价|缺货/.test(answers.q1b)) q1_analysis += 4;
+  if (/响应型|Responsive|效率型|Efficient|创新型|生命周期/.test(answers.q1b)) q1_analysis += 4;
+
+  let q2_formula = 0;
+  if (/TC\s*=/.test(answers.q2a) && /sea|海/.test(answers.q2a) && /land|陆|疏运/.test(answers.q2a)) q2_formula += 3;
+  if (/rent|租/.test(answers.q2a) && (/unpack|拆/.test(answers.q2a) || /delay|周转|资金/.test(answers.q2a))) q2_formula += 2;
+
+  let q2_calc = 0;
+  if (hasNumber(answers.q2b, c.q2_totalA)) q2_calc += 5;
+  if (hasNumber(answers.q2b, c.q2_totalB)) q2_calc += 5;
+
+  let q2_analysis = 0;
+  if (/方案\s*A|临港|沿海/.test(answers.q2c)) q2_analysis += 2;
+  if (/标准化|整箱|非标|摩擦|多式联运/.test(answers.q2c)) q2_analysis += 4;
+  if (/总成本|土地|内陆|临港|集聚|偏爱/.test(answers.q2c)) q2_analysis += 4;
+
+  let q3_s1 = hasNumber(answers.q3a, c.q3_s1, 0.05) ? 5 : (numbersIn(answers.q3a).length ? 2 : 0);
+  let q3_s2 = hasNumber(answers.q3b, c.q3_s2, 0.05) ? 5 : (numbersIn(answers.q3b).length ? 2 : 0);
+  let q3_s3 = 0;
+  if (hasNumber(answers.q3c, c.q3_totalS3)) q3_s3 += 2.5;
+  if (hasNumber(answers.q3c, c.q3_unitS3, 0.05)) q3_s3 += 2.5;
+
+  let q3_reflection = keywordScore(answers.q3d,
+    ['规模经济', '固定成本', '分摊', '1.20', '8.00', '规模不经济', '爆仓', '产能', '瓶颈', '削峰'], 10);
+
+  let q4_classify = 0;
+  ['48', '32', '16', '3.2', '0.8'].forEach(p => { if (answers.q4a.includes(p)) q4_classify += 1; });
+  if (/A类.*001|茅台.*A|001.*A/.test(answers.q4a)) q4_classify += 1;
+  if (/A类.*002|戴森.*A/.test(answers.q4a)) q4_classify += 1;
+  if (/B类.*003|松鼠.*B/.test(answers.q4a)) q4_classify += 1;
+  if (/C类.*004|C类.*005|抽纸.*C|笔芯.*C/.test(answers.q4a)) q4_classify += 1;
+  q4_classify = Math.min(10, q4_classify);
+
+  let q4_a = keywordScore(answers.q4b, ['每日', '永续', '盘点', '黄金', '出库', '安全', '密闭', '监控'], 8);
+  let q4_c = 0;
+  if (/大批量|低频次|集中/.test(answers.q4c)) q4_c += 2.5;
+  if (/资金成本|管理成本|帕累托|28/.test(answers.q4c)) q4_c += 4.5;
+
+  const q1_total = Math.min(25, Math.round(q1_calc + q1_analysis));
+  const q2_total = Math.min(25, Math.round(q2_formula + q2_calc + q2_analysis));
+  const q3_total = Math.min(25, Math.round(q3_s1 + q3_s2 + q3_s3 + q3_reflection));
+  const q4_total = Math.min(25, Math.round(q4_classify + q4_a + q4_c));
+  const grand_total = q1_total + q2_total + q3_total + q4_total;
+
+  return {
+    q1: {
+      score_calc: Math.round(q1_calc), score_analysis: Math.round(q1_analysis), total: q1_total,
+      feedback_calc: `方案A总成本应为 ${q1totalA.toLocaleString()} 元（运输 ${c.q1_transA.toLocaleString()} + 降价 ${c.q1_markdownA.toLocaleString()} + 缺货 ${c.q1_stockoutA.toLocaleString()}）。方案B总成本应为 ${q1totalB.toLocaleString()} 元。`,
+      feedback_analysis: '应选方案 B（极速空运）。快时尚产品需匹配响应型供应链，速度带来的隐性成本节约远超运费差额。',
+    },
+    q2: {
+      score_formula: Math.round(q2_formula), score_calc: Math.round(q2_calc), score_analysis: Math.round(q2_analysis), total: q2_total,
+      feedback_formula: 'TC = C_sea + C_land + C_unpack + C_rent + C_delay',
+      feedback_calc: `方案A年总成本 $${c.q2_totalA.toLocaleString()}，方案B $${c.q2_totalB.toLocaleString()}。`,
+      feedback_analysis: '应选方案 A（沿海临港）。集装箱标准化使内陆土地成本优势被陆运和拆箱等非标成本抵消。',
+    },
+    q3: {
+      score_s1: q3_s1, score_s2: q3_s2, score_s3: q3_s3, score_reflection: q3_reflection, total: q3_total,
+      feedback_calc: `场景1：${c.q3_s1.toFixed(2)} 元/件；场景2：${c.q3_s2.toFixed(2)} 元/件；场景3总成本 ${c.q3_totalS3.toLocaleString()} 元，单件 ${c.q3_unitS3.toFixed(2)} 元。`,
+      feedback_reflection: '规模经济来自固定成本分摊；超过产能上限会引发规模不经济，需削峰填谷或升级设施。',
+    },
+    q4: {
+      score_classify: Math.round(q4_classify), score_a_strategy: Math.round(q4_a), score_c_strategy: Math.round(q4_c), total: q4_total,
+      feedback_classify: 'A类：茅台(48%)+戴森(32%)；B类：松鼠(16%)；C类：抽纸(3.2%)+笔芯(0.8%)。',
+      feedback_a: 'A类应每日永续盘点，存放于安全密闭区并靠近出库口黄金货位。',
+      feedback_c: 'C类宜大批量低频次采购，资金占用可忽略，可节省管理成本。',
+    },
+    grand_total,
+    overall_comment: grand_total >= 80 ? '作答较好，计算与分析基本到位，继续保持！' :
+      grand_total >= 60 ? '部分题目已有思路，建议对照标准答案完善计算步骤。' :
+      '建议复习物流总成本、选址与 ABC 分类核心知识点，重新梳理计算过程。',
+    gradedBy: 'local',
+  };
+}
+
+// ==========================================
+// AI GRADING (optional, needs API key)
+// ==========================================
+async function gradeWithAI(answers, prompt) {
+  const apiKey = getApiKey();
+  if (!apiKey) return null;
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 2000,
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+  if (!response.ok) throw new Error('API ' + response.status);
+  const data = await response.json();
+  const text = (data.content || []).map(b => b.text || '').join('');
+  const clean = text.replace(/```json|```/g, '').trim();
+  const result = JSON.parse(clean);
+  result.gradedBy = 'ai';
+  return result;
+}
+
+function buildAIPrompt(answers, d) {
+  const { q1, q2, q3, q4 } = d;
+  const correct = computeCorrectAnswers(d);
+  const q1totalA = correct.q1_transA + correct.q1_markdownA + correct.q1_stockoutA;
+  const q1totalB = correct.q1_transB + correct.q1_stockoutB;
+  return `你是一位《物流战略管理》课程的专业阅卷老师。请严格依据标准答案与采分点评分。
+
+第一题标准答案：方案A总计${q1totalA.toLocaleString()}元，方案B总计${q1totalB.toLocaleString()}元，应选B。
+第二题：方案A $${correct.q2_totalA.toLocaleString()}，方案B $${correct.q2_totalB.toLocaleString()}，应选A。
+第三题：场景1 ${correct.q3_s1.toFixed(2)}元/件，场景2 ${correct.q3_s2.toFixed(2)}元/件，场景3 ${correct.q3_unitS3.toFixed(2)}元/件。
+第四题：A类001+002(80%)，B类003(16%)，C类004+005(4%)。
+
+学生作答：
+1a:${answers.q1a||'未作答'} 1b:${answers.q1b||'未作答'}
+2a:${answers.q2a||'未作答'} 2b:${answers.q2b||'未作答'} 2c:${answers.q2c||'未作答'}
+3a:${answers.q3a||'未作答'} 3b:${answers.q3b||'未作答'} 3c:${answers.q3c||'未作答'} 3d:${answers.q3d||'未作答'}
+4a:${answers.q4a||'未作答'} 4b:${answers.q4b||'未作答'} 4c:${answers.q4c||'未作答'}
+
+请输出严格JSON（无markdown）：{"q1":{"score_calc":数,"score_analysis":数,"total":数,"feedback_calc":"...","feedback_analysis":"..."},"q2":{"score_formula":数,"score_calc":数,"score_analysis":数,"total":数,"feedback_formula":"...","feedback_calc":"...","feedback_analysis":"..."},"q3":{"score_s1":数,"score_s2":数,"score_s3":数,"score_reflection":数,"total":数,"feedback_calc":"...","feedback_reflection":"..."},"q4":{"score_classify":数,"score_a_strategy":数,"score_c_strategy":数,"total":数,"feedback_classify":"...","feedback_a":"...","feedback_c":"..."},"grand_total":数,"overall_comment":"..."}`;
+}
+
+function buildCustomAIPrompt(answers, config) {
+  const answerKey = config.answerKey || '（无标准答案，请根据题目要求合理评分）';
+  const studentText = Object.entries(answers).map(([k, v]) => `${k}: ${v || '未作答'}`).join('\n');
+  return `你是阅卷老师。标准答案/采分点：\n${answerKey}\n\n学生作答：\n${studentText}\n\n试卷共${config.totalScore}分。输出JSON：{"grand_total":数,"overall_comment":"...","questions":[{"id":"...","score":数,"maxScore":数,"feedback":"..."}]}`;
+}
+
+async function gradeExam(answers) {
+  let result = null;
+
+  if (examConfig.type === 'structured') {
+    examData = examData || generateExam();
+    try {
+      result = await gradeWithAI(answers, buildAIPrompt(answers, examData));
+    } catch (e) { console.warn('AI grading failed', e); }
+    if (!result) result = gradeBuiltInLocally(answers, examData);
+    saveSubmission(answers, result.gradedBy === 'ai' ? 'auto_graded' : 'auto_graded', result);
+    showResults(result, answers);
+    return;
+  }
+
+  // Custom Word exam: try AI if key + answer key, else pending teacher
+  if (getApiKey() && examConfig.answerKey) {
+    try {
+      const aiResult = await gradeWithAI(answers, buildCustomAIPrompt(answers, examConfig));
+      if (aiResult) {
+        saveSubmission(answers, 'auto_graded', aiResult);
+        showCustomResults(aiResult, answers);
+        return;
+      }
+    } catch (e) { console.warn(e); }
+  }
+
+  const pending = saveSubmission(answers, 'pending', null);
+  showPendingResult(pending, answers);
+}
+
+function showPendingResult(submission, answers) {
+  showScreen('result-screen');
+  document.getElementById('final-score').textContent = '—';
+  document.getElementById('final-score').style.color = '#f5a623';
+  document.getElementById('result-name').textContent = `${studentName}（${studentId}）`;
+  document.getElementById('result-meta').textContent = '答卷已提交，等待老师批改';
+
+  const body = document.getElementById('result-body');
+  body.innerHTML = `
+    <div class="info-box">
+      ✅ 您的答卷已成功提交（编号：${submission.id.slice(0, 8)}…）<br>
+      当前试卷为老师上传的自定义内容，需老师人工批改。请记好学号，稍后在首页「查询成绩」查看结果。
+    </div>
+    ${examConfig.custom.questions.map((q, i) => `
+      <div class="result-section">
+        <div class="result-section-header">
+          <div class="result-section-title">第 ${i + 1} 题：${escapeHtml(q.title)}</div>
+        </div>
+        ${q.subQuestions.map(sq => `
+          <div style="margin-bottom:12px;">
+            <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">${escapeHtml(sq.label)}</div>
+            <div class="student-answer-preview">${escapeHtml(answers[sq.id] || '（未作答）')}</div>
+          </div>
+        `).join('')}
+      </div>
+    `).join('')}
+    <button class="print-btn" onclick="window.print()">🖨️ 打印答卷摘要</button>`;
+}
+
+function showCustomResults(result, answers) {
+  showScreen('result-screen');
+  const score = result.grand_total || 0;
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('result-name').textContent = `${studentName}（${studentId}）`;
+  document.getElementById('result-meta').textContent = `总分 ${examConfig.totalScore} 分 · AI 辅助批改`;
+  const body = document.getElementById('result-body');
+  body.innerHTML = `
+    <div class="total-bar">
+      <div><div class="total-label">📊 总得分</div><div style="font-size:13px;color:var(--muted);margin-top:4px">${result.overall_comment || ''}</div></div>
+      <div class="total-score">${score}</div>
+    </div>
+    ${(result.questions || []).map(q => `
+      <div class="result-section">
+        <div class="result-section-header">
+          <div class="result-section-title">${escapeHtml(q.id)}</div>
+          <span class="score-badge mid">${q.score} / ${q.maxScore}</span>
+        </div>
+        <div class="feedback-block">${escapeHtml(q.feedback || '')}</div>
+      </div>
+    `).join('')}
+    <button class="print-btn" onclick="window.print()">🖨️ 打印成绩单</button>`;
+}
+
+// ==========================================
+// TEACHER GRADING
+// ==========================================
+function renderSubmissionList() {
+  const list = getSubmissions();
+  const pending = list.filter(s => s.status === 'pending');
+  const el = document.getElementById('pending-count-info');
+  if (el) el.textContent = `共 ${list.length} 份答卷，其中 ${pending.length} 份待批改。`;
+
+  const container = document.getElementById('submission-list');
+  if (!container) return;
+  if (list.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);">暂无学生答卷</div>';
+    return;
+  }
+  container.innerHTML = list.map(s => {
+    const statusCls = s.status === 'pending' ? 'pending' : s.status === 'auto_graded' ? 'auto' : 'graded';
+    const statusText = s.status === 'pending' ? '待批改' : s.status === 'auto_graded' ? '自动批改' : '已批改';
+    const score = s.result?.grand_total ?? s.teacherGrade?.grandTotal ?? '—';
+    return `
+      <div class="submission-item">
+        <div class="submission-meta">
+          <div class="submission-name">${escapeHtml(s.studentName)} · ${escapeHtml(s.studentId)}</div>
+          <div class="submission-info">${escapeHtml(s.examTitle || '')} · ${new Date(s.submittedAt).toLocaleString('zh-CN')} · 得分 ${score}</div>
+        </div>
+        <span class="status-badge ${statusCls}">${statusText}</span>
+        <button class="btn-secondary" onclick="openTeacherGrade('${s.id}')">${s.status === 'pending' ? '批改' : '查看'}</button>
+      </div>`;
+  }).join('');
+}
+
+function openTeacherGrade(id) {
+  gradingSubmissionId = id;
+  const sub = getSubmissions().find(s => s.id === id);
+  if (!sub) return;
+
+  document.getElementById('grade-student-title').textContent = `${sub.studentName} 的答卷`;
+  document.getElementById('grade-student-meta').textContent =
+    `学号 ${sub.studentId} · ${sub.examTitle} · ${new Date(sub.submittedAt).toLocaleString('zh-CN')}`;
+
+  const body = document.getElementById('teacher-grade-body');
+  const customExam = sub.examSnapshot || (sub.examType === 'custom' ? loadExamConfig().custom : null);
+
+  if (sub.examType === 'custom' && customExam) {
+    body.innerHTML = customExam.questions.map((q, i) => `
+      <div class="result-section" style="margin-bottom:20px;">
+        <div class="result-section-header">
+          <div class="result-section-title">第 ${i + 1} 题：${escapeHtml(q.title)}（满分 ${q.score}）</div>
+        </div>
+        <div class="custom-q-content" style="margin-bottom:16px;">${q.contentHtml}</div>
+        ${q.subQuestions.map(sq => {
+          const existing = sub.teacherGrade?.scores?.[sq.id];
+          return `
+          <div style="margin-bottom:16px;">
+            <div class="sub-q-label">${escapeHtml(sq.label)}</div>
+            <div class="student-answer-preview">${escapeHtml(sub.answers[sq.id] || '（未作答）')}</div>
+            <div class="grade-input-row">
+              <label style="font-size:13px;color:var(--muted);">得分</label>
+              <input class="grade-input" type="number" min="0" max="${sq.maxScore || q.score}" id="grade-${sq.id}" value="${existing ?? ''}" placeholder="0">
+              <span style="font-size:13px;color:var(--muted);">/ ${sq.maxScore || q.score} 分</span>
+            </div>
+            <textarea class="answer-textarea" id="feedback-${sq.id}" rows="2" placeholder="评语..." style="margin-top:8px;min-height:60px;">${escapeHtml(sub.teacherGrade?.feedbacks?.[sq.id] || '')}</textarea>
+          </div>`;
+        }).join('')}
+      </div>
+    `).join('') + `
+    <div class="result-section">
+      <div class="sub-q-label">总评</div>
+      <textarea class="answer-textarea" id="grade-overall-comment" rows="3" placeholder="总体评语...">${escapeHtml(sub.teacherGrade?.overallComment || sub.result?.overall_comment || '')}</textarea>
+    </div>`;
+  } else {
+    // Structured exam - show all answers with override scores
+    const fields = [
+      ['q1a', '第一题-定量计算', 15], ['q1b', '第一题-战略分析', 10],
+      ['q2a', '第二题-公式', 5], ['q2b', '第二题-计算', 10], ['q2c', '第二题-分析', 10],
+      ['q3a', '第三题-场景1', 5], ['q3b', '第三题-场景2', 5], ['q3c', '第三题-场景3', 5], ['q3d', '第三题-反思', 10],
+      ['q4a', '第四题-分类', 10], ['q4b', '第四题-A类策略', 8], ['q4c', '第四题-C类策略', 7],
+    ];
+    const auto = sub.result || {};
+    body.innerHTML = fields.map(([id, label, max]) => {
+      const autoScore = getAutoScoreForField(auto, id);
+      const existing = sub.teacherGrade?.scores?.[id];
+      return `
+        <div class="result-section" style="margin-bottom:16px;">
+          <div class="result-section-header">
+            <div class="result-section-title">${label}</div>
+            ${autoScore !== null ? `<span class="status-badge auto">自动 ${autoScore} 分</span>` : ''}
+          </div>
+          <div class="student-answer-preview">${escapeHtml(sub.answers[id] || '（未作答）')}</div>
+          <div class="grade-input-row">
+            <label style="font-size:13px;color:var(--muted);">老师评分</label>
+            <input class="grade-input" type="number" min="0" max="${max}" id="grade-${id}" value="${existing ?? autoScore ?? ''}" placeholder="0">
+            <span style="font-size:13px;color:var(--muted);">/ ${max} 分</span>
+          </div>
+          <textarea class="answer-textarea" id="feedback-${id}" rows="2" style="margin-top:8px;min-height:60px;" placeholder="评语...">${escapeHtml(sub.teacherGrade?.feedbacks?.[id] || getAutoFeedback(auto, id) || '')}</textarea>
+        </div>`;
+    }).join('') + `
+    <div class="result-section">
+      <div class="sub-q-label">总评</div>
+      <textarea class="answer-textarea" id="grade-overall-comment" rows="3">${escapeHtml(sub.teacherGrade?.overallComment || auto.overall_comment || '')}</textarea>
+    </div>`;
+  }
+  showScreen('teacher-grade-screen');
+}
+
+function getAutoScoreForField(result, id) {
+  if (!result) return null;
+  const map = {
+    q1a: result.q1?.score_calc, q1b: result.q1?.score_analysis,
+    q2a: result.q2?.score_formula, q2b: result.q2?.score_calc, q2c: result.q2?.score_analysis,
+    q3a: result.q3?.score_s1, q3b: result.q3?.score_s2, q3c: result.q3?.score_s3, q3d: result.q3?.score_reflection,
+    q4a: result.q4?.score_classify, q4b: result.q4?.score_a_strategy, q4c: result.q4?.score_c_strategy,
+  };
+  return map[id] ?? null;
+}
+
+function getAutoFeedback(result, id) {
+  if (!result) return '';
+  const map = {
+    q1a: result.q1?.feedback_calc, q1b: result.q1?.feedback_analysis,
+    q2a: result.q2?.feedback_formula, q2b: result.q2?.feedback_calc, q2c: result.q2?.feedback_analysis,
+    q3a: result.q3?.feedback_calc, q3b: result.q3?.feedback_calc, q3c: result.q3?.feedback_calc, q3d: result.q3?.feedback_reflection,
+    q4a: result.q4?.feedback_classify, q4b: result.q4?.feedback_a, q4c: result.q4?.feedback_c,
+  };
+  return map[id] || '';
+}
+
+function saveTeacherGrade() {
+  const list = getSubmissions();
+  const sub = list.find(s => s.id === gradingSubmissionId);
+  if (!sub) return;
+
+  const scores = {};
+  const feedbacks = {};
+  let grandTotal = 0;
+
+  if (sub.examType === 'custom') {
+    const custom = sub.examSnapshot || loadExamConfig().custom;
+    custom?.questions.forEach(q => {
+      q.subQuestions.forEach(sq => {
+        const scoreEl = document.getElementById('grade-' + sq.id);
+        const fbEl = document.getElementById('feedback-' + sq.id);
+        const score = Math.min(sq.maxScore || q.score, Math.max(0, parseFloat(scoreEl?.value) || 0));
+        scores[sq.id] = score;
+        feedbacks[sq.id] = fbEl?.value || '';
+        grandTotal += score;
+      });
+    });
+  } else {
+    const fields = ['q1a','q1b','q2a','q2b','q2c','q3a','q3b','q3c','q3d','q4a','q4b','q4c'];
+    fields.forEach(id => {
+      const scoreEl = document.getElementById('grade-' + id);
+      const fbEl = document.getElementById('feedback-' + id);
+      scores[id] = Math.max(0, parseFloat(scoreEl?.value) || 0);
+      feedbacks[id] = fbEl?.value || '';
+      grandTotal += scores[id];
+    });
+  }
+
+  sub.status = 'graded';
+  sub.teacherGrade = {
+    scores,
+    feedbacks,
+    grandTotal: Math.round(grandTotal),
+    overallComment: document.getElementById('grade-overall-comment')?.value || '',
+    gradedAt: new Date().toISOString(),
+  };
+  sub.result = {
+    ...sub.result,
+    grand_total: sub.teacherGrade.grandTotal,
+    overall_comment: sub.teacherGrade.overallComment,
+    gradedBy: 'teacher',
+  };
+
+  saveSubmissions(list);
+  alert(`批改已保存！总分：${sub.teacherGrade.grandTotal} 分`);
+  backToTeacherGradeList();
+}
+
+function backToTeacherGradeList() {
+  gradingSubmissionId = null;
+  renderSubmissionList();
+  showScreen('teacher-screen');
+  switchTeacherTab('grade');
+}
+
+function lookupScore() {
+  const id = document.getElementById('lookup-id').value.trim();
+  const el = document.getElementById('lookup-result');
+  if (!id) { el.innerHTML = '<span style="color:#fca5a5;">请输入学号</span>'; return; }
+
+  const subs = getSubmissions().filter(s => s.studentId === id);
+  if (subs.length === 0) {
+    el.innerHTML = '<span style="color:var(--muted);">未找到该学号的答卷</span>';
+    return;
+  }
+  const latest = subs[0];
+  if (latest.status === 'pending') {
+    el.innerHTML = `<span style="color:#fcd34d;">答卷已提交，等待老师批改中…</span>`;
+    return;
+  }
+  const score = latest.teacherGrade?.grandTotal ?? latest.result?.grand_total ?? '—';
+  const comment = latest.teacherGrade?.overallComment ?? latest.result?.overall_comment ?? '';
+  el.innerHTML = `
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;">
+      <div style="font-weight:600;margin-bottom:6px;">${escapeHtml(latest.studentName)} · 得分 ${score} / ${latest.examType === 'custom' ? loadExamConfig().totalScore : 100}</div>
+      <div style="color:var(--muted);font-size:12px;margin-bottom:8px;">${new Date(latest.submittedAt).toLocaleString('zh-CN')} · ${latest.status === 'graded' ? '老师批改' : '自动批改'}</div>
+      <div style="font-size:13px;">${escapeHtml(comment)}</div>
+    </div>`;
+}
+
+// ==========================================
+// SHOW RESULTS
+// ==========================================
+function showResults(result, answers) {
+  showScreen('result-screen');
+
+  if (!result) {
+    document.getElementById('result-body').innerHTML = `
+      <div style="text-align:center;padding:40px;color:var(--muted)">
+        <div style="font-size:40px;margin-bottom:16px">⚠️</div>
+        <div>批改出现异常，请联系老师手动批改。</div>
+        <div style="margin-top:8px;font-size:12px">您的答案已保存至系统。</div>
+      </div>`;
+    return;
+  }
+
+  const gradedByLabel = result.gradedBy === 'ai' ? 'AI 辅助批改' :
+    result.gradedBy === 'teacher' ? '老师批改' : '系统自动批改';
+
+  const score = result.grand_total;
+  const ringCircumference = 440;
+  const offset = ringCircumference - (score / 100) * ringCircumference;
+  const scoreColor = score >= 80 ? '#22c55e' : score >= 60 ? '#f5a623' : '#ef4444';
+
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('final-score').style.color = scoreColor;
+  document.getElementById('result-name').textContent = `${studentName}（${studentId}）`;
+  const scoreLabel = score >= 90 ? '优秀' : score >= 80 ? '良好' : score >= 70 ? '中等' : score >= 60 ? '及格' : '需努力';
+  document.getElementById('result-meta').textContent = `考试结果：${scoreLabel} · 满分 100 分 · ${gradedByLabel}`;
+
+  const ring = document.getElementById('ring-fill');
+  ring.style.stroke = scoreColor;
+  ring.style.strokeDasharray = ringCircumference;
+  setTimeout(() => { ring.style.strokeDashoffset = offset; }, 100);
+
+  const getBadge = (s, max) => {
+    const pct = s / max;
+    const cls = pct >= 0.75 ? 'high' : pct >= 0.5 ? 'mid' : 'low';
+    return `<span class="score-badge ${cls}">${s} / ${max}</span>`;
+  };
+
+  const body = document.getElementById('result-body');
+  body.innerHTML = `
+    <div class="total-bar">
+      <div>
+        <div class="total-label">📊 总得分</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px">${result.overall_comment}</div>
+      </div>
+      <div class="total-score" style="color:${scoreColor}">${score}</div>
+    </div>
+
+    <div class="result-section">
+      <div class="result-section-header">
+        <div class="result-section-title">第一题：快时尚物流总成本定量权衡</div>
+        ${getBadge(result.q1.total, 25)}
+      </div>
+      <div style="margin-bottom:14px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px">① 定量计算（${result.q1.score_calc}/15分）</div>
+        <div class="student-answer-preview">${answers.q1a || '（未作答）'}</div>
+        <div class="feedback-block">${result.q1.feedback_calc}</div>
+      </div>
+      <div class="divider"></div>
+      <div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px">② 供应链战略分析（${result.q1.score_analysis}/10分）</div>
+        <div class="student-answer-preview">${answers.q1b || '（未作答）'}</div>
+        <div class="feedback-block">${result.q1.feedback_analysis}</div>
+      </div>
+    </div>
+
+    <div class="result-section">
+      <div class="result-section-header">
+        <div class="result-section-title">第二题：集装箱标准化与宏观选址</div>
+        ${getBadge(result.q2.total, 25)}
+      </div>
+      <div style="margin-bottom:14px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px">① 公式构建（${result.q2.score_formula}/5分）</div>
+        <div class="student-answer-preview">${answers.q2a || '（未作答）'}</div>
+        <div class="feedback-block">${result.q2.feedback_formula}</div>
+      </div>
+      <div class="divider"></div>
+      <div style="margin-bottom:14px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px">② 定量计算（${result.q2.score_calc}/10分）</div>
+        <div class="student-answer-preview">${answers.q2b || '（未作答）'}</div>
+        <div class="feedback-block">${result.q2.feedback_calc}</div>
+      </div>
+      <div class="divider"></div>
+      <div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px">③ 宏观选址反思（${result.q2.score_analysis}/10分）</div>
+        <div class="student-answer-preview">${answers.q2c || '（未作答）'}</div>
+        <div class="feedback-block">${result.q2.feedback_analysis}</div>
+      </div>
+    </div>
+
+    <div class="result-section">
+      <div class="result-section-header">
+        <div class="result-section-title">第三题：规模经济与规模不经济精算</div>
+        ${getBadge(result.q3.total, 25)}
+      </div>
+      <div style="margin-bottom:14px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px">① ② ③ 单位成本精算（${result.q3.score_s1 + result.q3.score_s2 + result.q3.score_s3}/15分）</div>
+        <div class="student-answer-preview">${[answers.q3a, answers.q3b, answers.q3c].filter(Boolean).join('\n---\n') || '（未作答）'}</div>
+        <div class="feedback-block">${result.q3.feedback_calc}</div>
+      </div>
+      <div class="divider"></div>
+      <div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px">④ 物流管理深度反思（${result.q3.score_reflection}/10分）</div>
+        <div class="student-answer-preview">${answers.q3d || '（未作答）'}</div>
+        <div class="feedback-block">${result.q3.feedback_reflection}</div>
+      </div>
+    </div>
+
+    <div class="result-section">
+      <div class="result-section-header">
+        <div class="result-section-title">第四题：ABC分类法仓储控制设计</div>
+        ${getBadge(result.q4.total, 25)}
+      </div>
+      <div style="margin-bottom:14px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px">① 定量分类（${result.q4.score_classify}/10分）</div>
+        <div class="student-answer-preview">${answers.q4a || '（未作答）'}</div>
+        <div class="feedback-block">${result.q4.feedback_classify}</div>
+      </div>
+      <div class="divider"></div>
+      <div style="margin-bottom:14px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px">② A类商品策略（${result.q4.score_a_strategy}/8分）</div>
+        <div class="student-answer-preview">${answers.q4b || '（未作答）'}</div>
+        <div class="feedback-block">${result.q4.feedback_a}</div>
+      </div>
+      <div class="divider"></div>
+      <div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px">③ C类商品策略（${result.q4.score_c_strategy}/7分）</div>
+        <div class="student-answer-preview">${answers.q4c || '（未作答）'}</div>
+        <div class="feedback-block">${result.q4.feedback_c}</div>
+      </div>
+    </div>
+
+    <button class="print-btn" onclick="window.print()">🖨️ 打印 / 保存成绩单</button>
+  `;
+}
+
+// ==========================================
+// UTILS
+// ==========================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// Init
+setupAntiCheat();
+initStartScreen();
+if (sessionStorage.getItem(STORAGE_KEYS.teacherSession) === '1') {
+  enterTeacherDashboard();
+}
+</script>
+</body>
+</html>

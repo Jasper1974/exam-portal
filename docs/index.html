@@ -723,6 +723,12 @@
     <div id="lookup-result" style="margin-top:12px;font-size:13px;text-align:left;"></div>
   </div>
 
+  <div id="sync-local-box" class="score-lookup" style="max-width:520px;width:100%;display:none;margin-top:16px;">
+    <div style="font-size:13px;color:var(--muted);margin-bottom:10px;">若您已在本机交卷，可点击下方按钮把答卷上传到服务器，供老师批改中心查看。</div>
+    <button class="btn-secondary" style="width:100%;" onclick="syncAllLocalSubmissionsToServer()">📤 上传本机答卷到服务器</button>
+    <div id="sync-local-result" style="margin-top:12px;font-size:13px;text-align:left;"></div>
+  </div>
+
   <button class="teacher-link" onclick="showScreen('teacher-login-screen')">👩‍🏫 老师入口</button>
 </div>
 
@@ -851,9 +857,19 @@
         <button class="btn-secondary" onclick="saveApiKey()">保存 API Key</button>
       </div>
       <div class="result-section" style="margin-top:20px;">
+        <h3 style="margin-bottom:12px;font-size:16px;">云端同步（推荐）</h3>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">配置后，学生交卷会自动上传到服务器；批改中心可查看全班答卷。请填写 Vercel 部署后的 API 地址与管理口令。</p>
+        <input class="input-field" id="sync-api-base-input" type="text" placeholder="https://你的域名.vercel.app" style="margin-bottom:12px;">
+        <input class="input-field" id="admin-secret-input" type="password" placeholder="管理口令（与服务器 ADMIN_SECRET 一致）" style="margin-bottom:12px;">
+        <button class="btn-primary" onclick="saveServerSyncSettings()" style="margin-right:10px;">保存云端设置</button>
+        <button class="btn-secondary" onclick="refreshSubmissionListFromServer()">从服务器刷新答卷</button>
+        <div id="server-sync-status" style="margin-top:12px;font-size:13px;color:var(--muted);"></div>
+      </div>
+      <div class="result-section" style="margin-top:20px;">
         <h3 style="margin-bottom:12px;font-size:16px;">数据管理</h3>
         <button class="btn-secondary" onclick="exportSubmissions()" style="margin-right:10px;">导出全部答卷 JSON</button>
-        <button class="btn-secondary" onclick="clearAllSubmissions()" style="color:#fca5a5;">清空全部答卷</button>
+        <button class="btn-secondary" onclick="importSubmissions()" style="margin-right:10px;">导入答卷 JSON</button>
+        <button class="btn-secondary" onclick="clearAllSubmissions()" style="color:#fca5a5;">清空本地答卷</button>
       </div>
     </div>
   </div>
@@ -886,9 +902,13 @@ const STORAGE_KEYS = {
   teacherPwd: 'logistics_teacher_pwd',
   apiKey: 'logistics_api_key',
   teacherSession: 'logistics_teacher_session',
+  syncApiBase: 'logistics_sync_api_base',
+  adminSecret: 'logistics_admin_secret',
 };
 
 const DEFAULT_TEACHER_PWD = 'teacher123';
+// 部署 API 后填写 Vercel 地址，例如 https://exam-portal.vercel.app
+const DEFAULT_SYNC_API_BASE = '';
 
 let examConfig = null;
 let examData = null;
@@ -917,6 +937,154 @@ function getTeacherPassword() {
 
 function getApiKey() {
   return localStorage.getItem(STORAGE_KEYS.apiKey) || '';
+}
+
+function getSyncApiBase() {
+  return (localStorage.getItem(STORAGE_KEYS.syncApiBase) || DEFAULT_SYNC_API_BASE || '').replace(/\/$/, '');
+}
+
+function getAdminSecret() {
+  return localStorage.getItem(STORAGE_KEYS.adminSecret) || '';
+}
+
+function isServerSyncEnabled() {
+  return Boolean(getSyncApiBase());
+}
+
+function updateSyncLocalBox() {
+  const box = document.getElementById('sync-local-box');
+  if (!box) return;
+  box.style.display = (isServerSyncEnabled() && getSubmissions().length > 0) ? 'block' : 'none';
+}
+
+async function syncSubmissionToServer(submission) {
+  const base = getSyncApiBase();
+  if (!base || !submission) return null;
+  const response = await fetch(`${base}/api/logistics/submit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(submission),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.error || `上传失败 (${response.status})`);
+  }
+  return data.submission || submission;
+}
+
+async function fetchSubmissionsFromServer() {
+  const base = getSyncApiBase();
+  const secret = getAdminSecret();
+  if (!base || !secret) {
+    throw new Error('请先在设置中填写 API 地址和管理口令');
+  }
+  const response = await fetch(`${base}/api/logistics/submissions`, {
+    headers: { 'x-admin-secret': secret },
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.error || `读取失败 (${response.status})`);
+  }
+  return data.submissions || [];
+}
+
+async function fetchSubmissionsFromServerByStudentId(studentId) {
+  const base = getSyncApiBase();
+  if (!base || !studentId) return [];
+  const response = await fetch(`${base}/api/logistics/submissions?studentId=${encodeURIComponent(studentId)}`);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.error || `查询失败 (${response.status})`);
+  }
+  return data.submissions || [];
+}
+
+function mergeSubmissionLists(localList, serverList) {
+  const map = new Map();
+  localList.forEach(item => map.set(item.id, item));
+  serverList.forEach(item => map.set(item.id, item));
+  return Array.from(map.values()).sort(
+    (a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime(),
+  );
+}
+
+async function refreshSubmissionListFromServer() {
+  const statusEl = document.getElementById('server-sync-status');
+  if (!isServerSyncEnabled()) {
+    alert('请先在设置中填写 API 地址');
+    return;
+  }
+  try {
+    if (statusEl) statusEl.textContent = '正在从服务器加载…';
+    const serverList = await fetchSubmissionsFromServer();
+    const merged = mergeSubmissionLists(getSubmissions(), serverList);
+    saveSubmissions(merged);
+    await renderSubmissionList();
+    if (statusEl) statusEl.textContent = `已从服务器同步 ${serverList.length} 份答卷（合并后共 ${merged.length} 份）`;
+  } catch (error) {
+    if (statusEl) statusEl.textContent = '';
+    alert(error.message || '同步失败');
+  }
+}
+
+async function syncAllLocalSubmissionsToServer() {
+  const resultEl = document.getElementById('sync-local-result');
+  const localList = getSubmissions();
+  if (!localList.length) {
+    if (resultEl) resultEl.innerHTML = '<span style="color:var(--muted);">本机没有可上传的答卷</span>';
+    return;
+  }
+  if (!isServerSyncEnabled()) {
+    if (resultEl) resultEl.innerHTML = '<span style="color:#fca5a5;">服务器地址未配置，请联系老师</span>';
+    return;
+  }
+  if (resultEl) resultEl.innerHTML = '<span style="color:#fcd34d;">正在上传…</span>';
+  let ok = 0;
+  let failed = 0;
+  for (const submission of localList) {
+    try {
+      await syncSubmissionToServer(submission);
+      ok += 1;
+    } catch (error) {
+      failed += 1;
+      console.warn('sync failed', submission.id, error);
+    }
+  }
+  if (resultEl) {
+    resultEl.innerHTML = failed
+      ? `<span style="color:#fcd34d;">已上传 ${ok} 份，失败 ${failed} 份。请检查网络后重试。</span>`
+      : `<span style="color:#86efac;">已成功上传 ${ok} 份答卷到服务器。</span>`;
+  }
+}
+
+function saveServerSyncSettings() {
+  const base = document.getElementById('sync-api-base-input').value.trim().replace(/\/$/, '');
+  const secret = document.getElementById('admin-secret-input').value.trim();
+  localStorage.setItem(STORAGE_KEYS.syncApiBase, base);
+  localStorage.setItem(STORAGE_KEYS.adminSecret, secret);
+  updateSyncLocalBox();
+  alert('云端设置已保存');
+}
+
+function importSubmissions() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'application/json,.json';
+  input.onchange = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const imported = JSON.parse(await file.text());
+      if (!Array.isArray(imported)) throw new Error('格式不正确');
+      const merged = mergeSubmissionLists(getSubmissions(), imported);
+      saveSubmissions(merged);
+      await renderSubmissionList();
+      alert(`已导入并合并，共 ${merged.length} 份答卷`);
+    } catch (error) {
+      alert('导入失败：' + (error.message || '未知错误'));
+    }
+  };
+  input.click();
 }
 
 function escapeHtml(str) {
@@ -1036,6 +1204,7 @@ function initStartScreen() {
   if (rulePdf && examConfig.type === 'custom') {
     rulePdf.innerHTML = `试卷内容来自老师上传的 <strong>${escapeHtml(examConfig.sourceFile || 'Word 文档')}</strong>，请在答题框内作答`;
   }
+  updateSyncLocalBox();
 }
 
 // ==========================================
@@ -1236,6 +1405,10 @@ function enterTeacherDashboard() {
   renderSubmissionList();
   const keyInput = document.getElementById('api-key-input');
   if (keyInput) keyInput.value = getApiKey();
+  const syncBaseInput = document.getElementById('sync-api-base-input');
+  const adminSecretInput = document.getElementById('admin-secret-input');
+  if (syncBaseInput) syncBaseInput.value = getSyncApiBase();
+  if (adminSecretInput) adminSecretInput.value = getAdminSecret();
   setupWordDropZone();
   showScreen('teacher-screen');
 }
@@ -1655,6 +1828,12 @@ function saveSubmission(answers, status, result) {
   list.unshift(submission);
   saveSubmissions(list);
   currentSubmissionId = submission.id;
+  updateSyncLocalBox();
+  if (isServerSyncEnabled()) {
+    syncSubmissionToServer(submission).catch(error => {
+      console.warn('auto sync failed', error);
+    });
+  }
   return submission;
 }
 
@@ -1955,15 +2134,36 @@ function showCustomResults(result, answers) {
 // TEACHER GRADING
 // ==========================================
 function renderSubmissionList() {
-  const list = getSubmissions();
-  const pending = list.filter(s => s.status === 'pending');
-  const el = document.getElementById('pending-count-info');
-  if (el) el.textContent = `共 ${list.length} 份答卷，其中 ${pending.length} 份待批改。`;
+  return renderSubmissionListAsync();
+}
 
+async function renderSubmissionListAsync() {
+  let list = getSubmissions();
+  const el = document.getElementById('pending-count-info');
   const container = document.getElementById('submission-list');
+
+  if (isServerSyncEnabled() && getAdminSecret()) {
+    if (el) el.textContent = '正在从服务器加载答卷…';
+    try {
+      const serverList = await fetchSubmissionsFromServer();
+      list = mergeSubmissionLists(list, serverList);
+      saveSubmissions(list);
+    } catch (error) {
+      console.warn('fetch server submissions failed', error);
+      if (el) el.textContent = `服务器读取失败：${error.message || '请检查 API 与管理口令'}`;
+    }
+  }
+
+  const pending = list.filter(s => s.status === 'pending');
+  if (el && (!isServerSyncEnabled() || getAdminSecret())) {
+    el.textContent = `共 ${list.length} 份答卷，其中 ${pending.length} 份待批改。`;
+  } else if (el && isServerSyncEnabled() && !getAdminSecret()) {
+    el.textContent = '请先在「设置」中填写管理口令，才能从服务器加载全班答卷。';
+  }
+
   if (!container) return;
   if (list.length === 0) {
-    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);">暂无学生答卷</div>';
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);">暂无学生答卷<br><span style="font-size:12px;margin-top:8px;display:block;">请让学生点击首页「上传本机答卷到服务器」，或交卷时自动上传。</span></div>';
     return;
   }
   container.innerHTML = list.map(s => {
@@ -2126,6 +2326,9 @@ function saveTeacherGrade() {
   };
 
   saveSubmissions(list);
+  if (isServerSyncEnabled()) {
+    syncSubmissionToServer(sub).catch(error => console.warn('teacher grade sync failed', error));
+  }
   alert(`批改已保存！总分：${sub.teacherGrade.grandTotal} 分`);
   backToTeacherGradeList();
 }
@@ -2138,11 +2341,28 @@ function backToTeacherGradeList() {
 }
 
 function lookupScore() {
+  lookupScoreAsync();
+}
+
+async function lookupScoreAsync() {
   const id = document.getElementById('lookup-id').value.trim();
   const el = document.getElementById('lookup-result');
   if (!id) { el.innerHTML = '<span style="color:#fca5a5;">请输入学号</span>'; return; }
 
-  const subs = getSubmissions().filter(s => s.studentId === id);
+  let subs = getSubmissions().filter(s => s.studentId === id);
+  if (subs.length === 0 && isServerSyncEnabled()) {
+    el.innerHTML = '<span style="color:var(--muted);">正在查询服务器…</span>';
+    try {
+      subs = await fetchSubmissionsFromServerByStudentId(id);
+      if (subs.length) {
+        saveSubmissions(mergeSubmissionLists(getSubmissions(), subs));
+      }
+    } catch (error) {
+      el.innerHTML = `<span style="color:#fca5a5;">${escapeHtml(error.message || '查询失败')}</span>`;
+      return;
+    }
+  }
+
   if (subs.length === 0) {
     el.innerHTML = '<span style="color:var(--muted);">未找到该学号的答卷</span>';
     return;
